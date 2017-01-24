@@ -7,6 +7,8 @@
 unsigned int CFeatureVector::NUMBER_OF_FEATURES        = 6;
 unsigned int CFeatureVector::NUMBER_OF_FEATURE_VECTORS = 0;
 double       CFeatureVector::FEATURE_RANGE             = 6.0;
+//new feature depth variable
+unsigned int CFeatureVector::FEATURE_DEPTH             = 1;
 
 /******************************************************************************/
 /******************************************************************************/
@@ -15,7 +17,8 @@ double       CFeatureVector::FEATURE_RANGE             = 6.0;
 CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 {
     m_unValue  = 0;
-    m_unLength = NUMBER_OF_FEATURES;
+//added * FEATURE_DEPTH to get feature vector size with new feature depths
+    m_unLength = NUMBER_OF_FEATURES;// * FEATURE_DEPTH;
 
     //assert(NUMBER_OF_FEATURES == 4);
     NUMBER_OF_FEATURE_VECTORS = 1 << NUMBER_OF_FEATURES;
@@ -35,7 +38,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
         m_pfFeatureValues[i]         = 0.0;
     }
 
-    m_fVelocityThreshold            = 0.05  * (m_pcAgent->GetMaximumSpeed());
+ /* m_fVelocityThreshold            = 0.05  * (m_pcAgent->GetMaximumSpeed());
     m_fAccelerationThreshold        = 0.05  * (m_pcAgent->GetMaximumSpeed());
 
     m_tAngularVelocityThreshold     = 0.032  * (m_pcAgent->GetMaximumAngularVelocity());
@@ -43,8 +46,31 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 
     m_fRelativeVelocityMagThreshold = 0.05 * (m_pcAgent->GetMaximumSpeed());
     m_fRelativeVelocityDirThreshold = 0.05  * (m_pcAgent->GetMaximumAngularVelocity());
+*/
+ //new code for features with more than one possible value. feature depth is number of bits, so 2^n possible values
+    m_pfVelocityBands = new float[2^FEATURE_DEPTH];
+    m_pfAccelerationBands = new float[2^FEATURE_DEPTH];
+
+    m_pfAngularVelocityBands = new float[2^FEATURE_DEPTH];
+    m_pfAngularAccelerationBands = new float[2^FEATURE_DEPTH];
+
+    m_pfRelativeVelocityMagBands = new float[2^FEATURE_DEPTH];
+    m_pfRelativeVelocityDirBands = new float[2^FEATURE_DEPTH];
 
 
+    for(unsigned int i = 1; i < (2^FEATURE_DEPTH); i++)
+    {
+//entire range of possible values split equally into 2^FEATURE_DEPTH bands
+//could incorporate the 0.05 and 0.032 values used previously to avoid noise
+        m_pfVelocityBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
+        m_pfAccelerationVelocityBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
+
+        m_pfAngularVelocityBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
+        m_pfAngularAccelerationBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
+
+        m_pfRelativeVelocityMagBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
+        m_pfRelativeVelocityDirBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
+    }
 
 
 
@@ -61,10 +87,13 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     // keeping track of distance travelled by bot in last 100 time-steps
     m_iDistTravelledTimeWindow = 100;
     m_unCoordCurrQueueIndex    = 0;
-
+/******CHANGE THRESHOLD TO BANDS****************/
     m_fSquaredDistTravelled = 0.0;
     m_fSquaredDistThreshold = (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow)) *
             (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow));
+
+    m_pfSquaredDist
+
 
     m_pvecCoordAtTimeStep = new TVector2d[m_iDistTravelledTimeWindow];
 }
@@ -108,9 +137,9 @@ unsigned int CFeatureVector::SimulationStep()
 {
     ComputeFeatureValues();
     m_unValue = 0;
-    
+
     for (unsigned int i = 0; i < m_unLength; i++)
-        m_unValue += (unsigned int)m_pfFeatureValues[i] * (1 << i);
+        m_unValue += (unsigned int)m_pfFeatureValues[i] * (FEATURE_DEPTH << i);//(1 << i);
 }
 
 /******************************************************************************/
@@ -141,17 +170,41 @@ void CFeatureVector::ComputeFeatureValues()
     if(CurrentStepNumber >= m_iEventSelectionTimeWindow)
     {
         // decision based on the last X time-steps
+//        if(m_unSumTimeStepsNbrsRange0to3 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
+//            m_pfFeatureValues[0] = 1.0;
+//        else
+//           m_pfFeatureValues[0] = 0.0;
+//
+//        if(m_unSumTimeStepsNbrsRange3to6 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
+//            m_pfFeatureValues[1] = 1.0;
+//        else
+//            m_pfFeatureValues[1] = 0.0;
+/*********Sensors************/
+//Not sure about this code
+//adds 1 to feature value for each robot within range, until limit set by feature depth is reached
+//could change to wider bands
+
         if(m_unSumTimeStepsNbrsRange0to3 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
-            m_pfFeatureValues[0] = 1.0;
-        else
-            m_pfFeatureValues[0] = 0.0;
+        {
+            m_pfFeatureValues[0] = 0;
+            for(int i = 0; i < (2^FEATURE_DEPTH); i++)
+            {
+                if((m_unSumTimeStepsNbrsRange0to3 >= i) )
+                    m_pfFeatureValues[0] += 1.0;
+            }
+        }
 
-        if(m_unSumTimeStepsNbrsRange3to6 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
-            m_pfFeatureValues[1] = 1.0;
-        else
-            m_pfFeatureValues[1] = 0.0;
+        if(m_unSumTimeStepsNbrsRange0to3 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
+        {
+            m_pfFeatureValues[1] = 0;
+            for(int i = 0; i < (2^FEATURE_DEPTH); i++)
+            {
+                if((m_unSumTimeStepsNbrsRange0to3 >= i) )
+                    m_pfFeatureValues[1] += 1.0;
+            }
+        }
 
-        // removing the fist entry of the moving time window  from the sum
+        // removing the first entry of the moving time window  from the sum
         m_unSumTimeStepsNbrsRange0to3 -=  m_punNbrsRange0to3AtTimeStep[m_unNbrsCurrQueueIndex];
         m_unSumTimeStepsNbrsRange3to6 -=  m_punNbrsRange3to6AtTimeStep[m_unNbrsCurrQueueIndex];
     }
