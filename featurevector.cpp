@@ -57,8 +57,10 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_pfRelativeVelocityMagBands = new float[2^FEATURE_DEPTH];
     m_pfRelativeVelocityDirBands = new float[2^FEATURE_DEPTH];
 
+    m_pfSquaredDistBands = new float[2^FEATURE_DEPTH];
 
-    for(unsigned int i = 1; i < (2^FEATURE_DEPTH); i++)
+
+    for(unsigned int i = 0; i < (2^FEATURE_DEPTH); i++)
     {
 //entire range of possible values split equally into 2^FEATURE_DEPTH bands
 //could incorporate the 0.05 and 0.032 values used previously to avoid noise
@@ -70,6 +72,8 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 
         m_pfRelativeVelocityMagBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
         m_pfRelativeVelocityDirBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
+
+        m_pfSquaredDistBands[i] = i * (1/(2^FEATURE_DEPTH)) * m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow;
     }
 
 
@@ -85,15 +89,13 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 
 
     // keeping track of distance travelled by bot in last 100 time-steps
-    m_iDistTravelledTimeWindow = 100;
+    m_iDistTravelledTimeWindow = 100;/******/
     m_unCoordCurrQueueIndex    = 0;
-/******CHANGE THRESHOLD TO BANDS****************/
+
     m_fSquaredDistTravelled = 0.0;
-    m_fSquaredDistThreshold = (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow)) *
-            (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow));
-
-    m_pfSquaredDist
-
+    //m_fSquaredDistThreshold = (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow)) *
+    //        (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow));
+    //squared distance bands are set in the loop with other bands
 
     m_pvecCoordAtTimeStep = new TVector2d[m_iDistTravelledTimeWindow];
 }
@@ -138,8 +140,14 @@ unsigned int CFeatureVector::SimulationStep()
     ComputeFeatureValues();
     m_unValue = 0;
 
-    for (unsigned int i = 0; i < m_unLength; i++)
-        m_unValue += (unsigned int)m_pfFeatureValues[i] * (FEATURE_DEPTH << i);//(1 << i);
+    for(unsigned int i = 0; i < m_unLength; i++)
+    {
+        m_unValue += (unsigned int)m_pfFeatureValues[i] * (1 << (FEATURE_DEPTH * i));
+    }
+
+//    for (unsigned int i = 0; i < m_unLength; i++)
+//        m_unValue += (unsigned int)m_pfFeatureValues[i] * (1 << i);
+
 }
 
 /******************************************************************************/
@@ -170,37 +178,32 @@ void CFeatureVector::ComputeFeatureValues()
     if(CurrentStepNumber >= m_iEventSelectionTimeWindow)
     {
         // decision based on the last X time-steps
-//        if(m_unSumTimeStepsNbrsRange0to3 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
-//            m_pfFeatureValues[0] = 1.0;
-//        else
-//           m_pfFeatureValues[0] = 0.0;
-//
-//        if(m_unSumTimeStepsNbrsRange3to6 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
-//            m_pfFeatureValues[1] = 1.0;
-//        else
-//            m_pfFeatureValues[1] = 0.0;
-/*********Sensors************/
-//Not sure about this code
-//adds 1 to feature value for each robot within range, until limit set by feature depth is reached
-//could change to wider bands
 
-        if(m_unSumTimeStepsNbrsRange0to3 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
+/* Old feature 1 and 2 code
+
+     if(m_unSumTimeStepsNbrsRange0to3 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
+            m_pfFeatureValues[0] = 1.0;
+        else
+           m_pfFeatureValues[0] = 0.0;
+
+        if(m_unSumTimeStepsNbrsRange3to6 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
+            m_pfFeatureValues[1] = 1.0;
+        else
+            m_pfFeatureValues[1] = 0.0;
+*/
+
+        for(int i = 1; i <= 2^FEATURE_DEPTH; i++)
         {
-            m_pfFeatureValues[0] = 0;
-            for(int i = 0; i < (2^FEATURE_DEPTH); i++)
+            if( (m_unSumTimeStepsNbrsRange0to3 >= (unsigned)((i-1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
+                && (m_unSumTimeStepsNbrsRange0to3 < (unsigned)(i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
             {
-                if((m_unSumTimeStepsNbrsRange0to3 >= i) )
-                    m_pfFeatureValues[0] += 1.0;
+                m_pfFeatureValues[0] = i;
             }
-        }
 
-        if(m_unSumTimeStepsNbrsRange0to3 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
-        {
-            m_pfFeatureValues[1] = 0;
-            for(int i = 0; i < (2^FEATURE_DEPTH); i++)
+            if ( (m_unSumTimeStepsNbrsRange3to6 >= (unsigned)((i-1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
+                && (m_unSumTimeStepsNbrsRange3to6 < (unsigned)(i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
             {
-                if((m_unSumTimeStepsNbrsRange0to3 >= i) )
-                    m_pfFeatureValues[1] += 1.0;
+                m_pfFeatureValues[1] = i;
             }
         }
 
@@ -232,10 +235,13 @@ void CFeatureVector::ComputeFeatureValues()
     m_unNbrsCurrQueueIndex = (m_unNbrsCurrQueueIndex + 1) % m_iEventSelectionTimeWindow;
 
 
+
     // Sensors-motor interactions
     // Set if the occurance of the following event, atleast once in time window X
     // 3rd: distance to nbrs 0-6 && change in angular acceleration
     // 4th: no neighbors detected  && change in angular acceleration
+/**could change to larger time window**/
+/*  old feature 3 and 4 code
 
     if(dist_nbrsagents < 6.0 &&
             (angle_acceleration > m_tAngularAccelerationThreshold ||
@@ -262,6 +268,37 @@ void CFeatureVector::ComputeFeatureValues()
             m_pfFeatureValues[featureindex] = 0.0;
         }
     }
+*/
+
+    int accelerationBand = 0;
+
+    for(int i = 1; i <= 2^FEATURE_DEPTH; i++)
+    {
+        if(dist_nbrsagents < 6.0 &&
+          ( (angle_acceleration >= m_pfAngularAccelerationBands[i-1] && angle_acceleration < m_pfAngularAccelerationBands[i]) ||
+            (angle_acceleration <= -m_pfAngularAccelerationBands[i-1] && angle_acceleration > -m_pfAngularAccelerationBands[i]) ))
+        {
+            m_piLastOccuranceEvent[2] = CurrentStepNumber;
+            accelerationBand = i;
+        }
+
+        if(dist_nbrsagents == 6.0 &&
+          ( (angle_acceleration >= m_pfAngularAccelerationBands[i-1] && angle_acceleration < m_pfAngularAccelerationBands[i]) ||
+            (angle_acceleration <= -m_pfAngularAccelerationBands[i-1] && angle_acceleration > -m_pfAngularAccelerationBands[i]) ))
+        {
+            m_piLastOccuranceEvent[3] = CurrentStepNumber;
+            accelerationBand = i;
+        }
+    }
+
+    for(unsigned int featureindex = 2; featureindex <= 3; featureindex++)
+    {
+        if ((CurrentStepNumber - m_piLastOccuranceEvent[featureindex]) <= m_iEventSelectionTimeWindow)
+        {
+            m_pfFeatureValues[featureindex] = accelerationBand;
+        }
+    }
+
 
     // Motors
     //5th: distance travelled by bot in past Y time-steps. Higher than 5% of max-possible distance travelled is accepted as feature=1.
@@ -276,10 +313,18 @@ void CFeatureVector::ComputeFeatureValues()
 
 
         // decision based on distance travelled in the last 100 time-steps
-        if(m_fSquaredDistTravelled >= m_fSquaredDistThreshold)
+/*       if(m_fSquaredDistTravelled >= m_fSquaredDistThreshold)
             m_pfFeatureValues[4] = 1.0;
         else
             m_pfFeatureValues[4] = 0.0;
+*/
+        for(int i = 0; i < 2^FEATURE_DEPTH; i++)
+        {
+            if(m_fSquaredDistTravelled >= m_pfSquaredDistBands[i] && m_fSquaredDistTravelled < m_pfSquaredDistBands[i+1])
+            {
+                m_pfFeatureValues[4] = i;
+            }
+        }
     }
 
     // adding new coordinate values into the queue
@@ -288,9 +333,14 @@ void CFeatureVector::ComputeFeatureValues()
 
 
     //6th: velocity, higher than 5% of speed is accepted as feature=1
-    m_pfFeatureValues[5] = (mag_velocity >= m_fVelocityThreshold) ? 1.0:0.0;
-
-
+//    m_pfFeatureValues[5] = (mag_velocity >= m_fVelocityThreshold) ? 1.0:0.0;
+    for(int i = 0; i < 2^FEATURE_DEPTH; i++)
+    {
+        if(mag_velocity > m_pfVelocityBands[i] && mag_velocity < m_pfVelocityBands[i+1])
+        {
+           m_pfFeatureValues[5] = i;
+        }
+    }
 #ifdef DEBUGFEATUREVECTORFLAG
 if(FDMODELTYPE != LINEQ) // lineq - low expected run time; can come back and log more details if needed
 PrintFeatureDetails();
