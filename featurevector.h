@@ -31,6 +31,7 @@ public:
     static unsigned int NUMBER_OF_FEATURES;
     static unsigned int NUMBER_OF_FEATURE_VECTORS;
     static double       FEATURE_RANGE;
+    static unsigned int FEATURE_DEPTH;                      /***bit depth of features**/
 
     virtual unsigned int GetValue() const;
     virtual unsigned int GetLength() const;
@@ -45,9 +46,9 @@ public:
 protected:
     virtual void ComputeFeatureValues();
 
-    CAgent*      m_pcAgent;    
+    CAgent*      m_pcAgent;
     unsigned int m_unValue;
-    unsigned int m_unLength;    
+    unsigned int m_unLength;
 
     float*         m_pfFeatureValues;
     int*           m_piLastOccuranceEvent;
@@ -55,7 +56,7 @@ protected:
 
     int          m_iEventSelectionTimeWindow;
 
-    double       m_fVelocityThreshold;
+/*    double       m_fVelocityThreshold;
     double       m_fAccelerationThreshold;
 
     double       m_tAngularVelocityThreshold;
@@ -63,6 +64,22 @@ protected:
 
     double       m_fRelativeVelocityMagThreshold;
     double       m_fRelativeVelocityDirThreshold;
+*/
+
+ /*************bands replacing thresholds*************/
+    float* m_pfVelocityBands;
+    float* m_pfAccelerationBands;
+
+    float* m_pfAngularVelocityBands;
+    float* m_pfAngularAccelerationBands;
+
+    float* m_pfRelativeVelocityMagBands;
+    float* m_pfRelativeVelocityDirBands;
+
+    float* m_pfSquaredDistBands;
+
+
+ /*************************/
 
 
 
@@ -84,7 +101,7 @@ protected:
     unsigned int     m_unCoordCurrQueueIndex;
 
     double           m_fSquaredDistTravelled;
-    double           m_fSquaredDistThreshold;
+//    double           m_fSquaredDistThreshold;
 
     TVector2d*       m_pvecCoordAtTimeStep;
 
