@@ -18,10 +18,10 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 {
     m_unValue  = 0;
 //added * FEATURE_DEPTH to get feature vector size with new feature depths
-    m_unLength = NUMBER_OF_FEATURES;// * FEATURE_DEPTH;
+    m_unLength = NUMBER_OF_FEATURES;
 
     //assert(NUMBER_OF_FEATURES == 4);
-    NUMBER_OF_FEATURE_VECTORS = 1 << NUMBER_OF_FEATURES;
+    NUMBER_OF_FEATURE_VECTORS = 1 << NUMBER_OF_FEATURES*FEATURE_DEPTH;
 
     m_pfFeatureValues         = new float[m_unLength];
     m_piLastOccuranceEvent    = new int[m_unLength];
@@ -65,7 +65,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 //entire range of possible values split equally into 2^FEATURE_DEPTH bands
 //could incorporate the 0.05 and 0.032 values used previously to avoid noise
         m_pfVelocityBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
-        m_pfAccelerationVelocityBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
+        m_pfAccelerationBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
 
         m_pfAngularVelocityBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
         m_pfAngularAccelerationBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
@@ -73,7 +73,8 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
         m_pfRelativeVelocityMagBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
         m_pfRelativeVelocityDirBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
 
-        m_pfSquaredDistBands[i] = i * (1/(2^FEATURE_DEPTH)) * m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow;
+        m_pfSquaredDistBands[i] = i * (1/(2^FEATURE_DEPTH)) * ((m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow) *
+                                                                (m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow));
     }
 
 
@@ -140,9 +141,9 @@ unsigned int CFeatureVector::SimulationStep()
     ComputeFeatureValues();
     m_unValue = 0;
 
-    for(unsigned int i = 0; i < m_unLength; i++)
+    for(unsigned int i = 0; i < m_unLength*FEATURE_DEPTH; i++)
     {
-        m_unValue += (unsigned int)m_pfFeatureValues[i] * (1 << (FEATURE_DEPTH * i));
+        m_unValue += ((unsigned int)m_pfFeatureValues[i] << (FEATURE_DEPTH * i));
     }
 
 //    for (unsigned int i = 0; i < m_unLength; i++)
@@ -192,16 +193,16 @@ void CFeatureVector::ComputeFeatureValues()
             m_pfFeatureValues[1] = 0.0;
 */
 
-        for(int i = 1; i <= 2^FEATURE_DEPTH; i++)
+        for(int i = 0; i < 2^FEATURE_DEPTH; i++)
         {
-            if( (m_unSumTimeStepsNbrsRange0to3 >= (unsigned)((i-1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
-                && (m_unSumTimeStepsNbrsRange0to3 < (unsigned)(i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
+            if( (m_unSumTimeStepsNbrsRange0to3 >= (unsigned)(i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
+                && (m_unSumTimeStepsNbrsRange0to3 < (unsigned)((i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
             {
                 m_pfFeatureValues[0] = i;
             }
 
-            if ( (m_unSumTimeStepsNbrsRange3to6 >= (unsigned)((i-1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
-                && (m_unSumTimeStepsNbrsRange3to6 < (unsigned)(i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
+            if ( (m_unSumTimeStepsNbrsRange3to6 >= (unsigned)(i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
+                && (m_unSumTimeStepsNbrsRange3to6 < (unsigned)((i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
             {
                 m_pfFeatureValues[1] = i;
             }
@@ -272,19 +273,19 @@ void CFeatureVector::ComputeFeatureValues()
 
     int accelerationBand = 0;
 
-    for(int i = 1; i <= 2^FEATURE_DEPTH; i++)
+    for(int i = 0; i < 2^FEATURE_DEPTH; i++)
     {
         if(dist_nbrsagents < 6.0 &&
-          ( (angle_acceleration >= m_pfAngularAccelerationBands[i-1] && angle_acceleration < m_pfAngularAccelerationBands[i]) ||
-            (angle_acceleration <= -m_pfAngularAccelerationBands[i-1] && angle_acceleration > -m_pfAngularAccelerationBands[i]) ))
+          ( (angle_acceleration >= m_pfAngularAccelerationBands[i] && angle_acceleration < m_pfAngularAccelerationBands[i+1]) ||
+            (angle_acceleration <= -m_pfAngularAccelerationBands[i] && angle_acceleration > -m_pfAngularAccelerationBands[i+1]) ))
         {
             m_piLastOccuranceEvent[2] = CurrentStepNumber;
             accelerationBand = i;
         }
 
         if(dist_nbrsagents == 6.0 &&
-          ( (angle_acceleration >= m_pfAngularAccelerationBands[i-1] && angle_acceleration < m_pfAngularAccelerationBands[i]) ||
-            (angle_acceleration <= -m_pfAngularAccelerationBands[i-1] && angle_acceleration > -m_pfAngularAccelerationBands[i]) ))
+          ( (angle_acceleration >= m_pfAngularAccelerationBands[i] && angle_acceleration < m_pfAngularAccelerationBands[i+1]) ||
+            (angle_acceleration <= -m_pfAngularAccelerationBands[i] && angle_acceleration > -m_pfAngularAccelerationBands[i+1]) ))
         {
             m_piLastOccuranceEvent[3] = CurrentStepNumber;
             accelerationBand = i;
@@ -320,7 +321,7 @@ void CFeatureVector::ComputeFeatureValues()
 */
         for(int i = 0; i < 2^FEATURE_DEPTH; i++)
         {
-            if(m_fSquaredDistTravelled >= m_pfSquaredDistBands[i] && m_fSquaredDistTravelled < m_pfSquaredDistBands[i+1])
+            if((m_fSquaredDistTravelled >= m_pfSquaredDistBands[i]) && (m_fSquaredDistTravelled < m_pfSquaredDistBands[i+1]))
             {
                 m_pfFeatureValues[4] = i;
             }
@@ -336,7 +337,7 @@ void CFeatureVector::ComputeFeatureValues()
 //    m_pfFeatureValues[5] = (mag_velocity >= m_fVelocityThreshold) ? 1.0:0.0;
     for(int i = 0; i < 2^FEATURE_DEPTH; i++)
     {
-        if(mag_velocity > m_pfVelocityBands[i] && mag_velocity < m_pfVelocityBands[i+1])
+        if(mag_velocity >= m_pfVelocityBands[i] && mag_velocity < m_pfVelocityBands[i+1])
         {
            m_pfFeatureValues[5] = i;
         }
@@ -411,7 +412,7 @@ void CFeatureVector::PrintFeatureDetails()
         printf("Step: %d, Alternate normal FV info (with WC on S-M features), TimeSteps_NbrsInRange0to3: %d, TimeSteps_NbrsInRange3to6: %d, SquaredDistTravelled: %f, SquaredDistThreshold: %f, WildCard: %d\n", CurrentStepNumber, m_unSumTimeStepsNbrsRange0to3, m_unSumTimeStepsNbrsRange3to6, m_fSquaredDistTravelled, m_fSquaredDistThreshold, m_iWildCardBit);
 
 #else
-        printf("Step: %d, Alternate normal FV info, TimeSteps_NbrsInRange0to3: %d, TimeSteps_NbrsInRange3to6: %d, SquaredDistTravelled: %f, SquaredDistThreshold: %f\n", CurrentStepNumber, m_unSumTimeStepsNbrsRange0to3, m_unSumTimeStepsNbrsRange3to6, m_fSquaredDistTravelled, m_fSquaredDistThreshold);
+        printf("Step: %d, Alternate normal FV info, TimeSteps_NbrsInRange0to3: %d, TimeSteps_NbrsInRange3to6: %d, SquaredDistTravelled: %f"/*, SquaredDistThreshold: %f\n"*/, CurrentStepNumber, m_unSumTimeStepsNbrsRange0to3, m_unSumTimeStepsNbrsRange3to6, m_fSquaredDistTravelled/*, m_fSquaredDistThreshold*/);
 #endif //WILDCARDINFV
     }
 
@@ -428,7 +429,7 @@ void CFeatureVector::PrintFeatureDetails()
         printf("Step: %d, Alternate abnormal FV info (with WC on S-M features), TimeSteps_NbrsInRange0to3: %d, TimeSteps_NbrsInRange3to6: %d, SquaredDistTravelled: %f, SquaredDistThreshold: %f, WildCard: %d\n", CurrentStepNumber, m_unSumTimeStepsNbrsRange0to3, m_unSumTimeStepsNbrsRange3to6, m_fSquaredDistTravelled, m_fSquaredDistThreshold, m_iWildCardBit);
 
 #else
-        printf("Step: %d, Alternate abnormal FV info, TimeSteps_NbrsInRange0to3: %d, TimeSteps_NbrsInRange3to6: %d, SquaredDistTravelled: %f, SquaredDistThreshold: %f\n", CurrentStepNumber, m_unSumTimeStepsNbrsRange0to3, m_unSumTimeStepsNbrsRange3to6, m_fSquaredDistTravelled, m_fSquaredDistThreshold);
+        printf("Step: %d, Alternate abnormal FV info, TimeSteps_NbrsInRange0to3: %d, TimeSteps_NbrsInRange3to6: %d, SquaredDistTravelled: %f"/*, SquaredDistThreshold: %f\n"*/, CurrentStepNumber, m_unSumTimeStepsNbrsRange0to3, m_unSumTimeStepsNbrsRange3to6, m_fSquaredDistTravelled/*, m_fSquaredDistThreshold*/);
 #endif //WILDCARDINFV
     }
 }
