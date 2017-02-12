@@ -195,14 +195,14 @@ void CFeatureVector::ComputeFeatureValues()
 
         for(int i = 0; i < 2^FEATURE_DEPTH; i++)
         {
-            if( (m_unSumTimeStepsNbrsRange0to3 >= (unsigned)(i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
-                && (m_unSumTimeStepsNbrsRange0to3 < (unsigned)((i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
+            if( (m_unSumTimeStepsNbrsRange0to3 >= (i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
+                && (m_unSumTimeStepsNbrsRange0to3 < (i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow) )
             {
                 m_pfFeatureValues[0] = i;
             }
 
-            if ( (m_unSumTimeStepsNbrsRange3to6 >= (unsigned)(i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
-                && (m_unSumTimeStepsNbrsRange3to6 < (unsigned)((i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
+            if ( (m_unSumTimeStepsNbrsRange3to6 >= (i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
+                && (m_unSumTimeStepsNbrsRange3to6 < ((i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
             {
                 m_pfFeatureValues[1] = i;
             }
