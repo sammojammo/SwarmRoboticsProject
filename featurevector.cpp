@@ -199,12 +199,14 @@ void CFeatureVector::ComputeFeatureValues()
                 && (m_unSumTimeStepsNbrsRange0to3 < (i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow) )
             {
                 m_pfFeatureValues[0] = i;
+                break;
             }
 
             if ( (m_unSumTimeStepsNbrsRange3to6 >= (i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
                 && (m_unSumTimeStepsNbrsRange3to6 < ((i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
             {
                 m_pfFeatureValues[1] = i;
+                break;
             }
         }
 
@@ -281,6 +283,7 @@ void CFeatureVector::ComputeFeatureValues()
         {
             m_piLastOccuranceEvent[2] = CurrentStepNumber;
             accelerationBand = i;
+            break;
         }
 
         if(dist_nbrsagents == 6.0 &&
@@ -289,6 +292,7 @@ void CFeatureVector::ComputeFeatureValues()
         {
             m_piLastOccuranceEvent[3] = CurrentStepNumber;
             accelerationBand = i;
+            break;
         }
     }
 
@@ -324,6 +328,7 @@ void CFeatureVector::ComputeFeatureValues()
             if((m_fSquaredDistTravelled >= m_pfSquaredDistBands[i]) && (m_fSquaredDistTravelled < m_pfSquaredDistBands[i+1]))
             {
                 m_pfFeatureValues[4] = i;
+                break;
             }
         }
     }
@@ -340,6 +345,7 @@ void CFeatureVector::ComputeFeatureValues()
         if(mag_velocity >= m_pfVelocityBands[i] && mag_velocity < m_pfVelocityBands[i+1])
         {
            m_pfFeatureValues[5] = i;
+           break;
         }
     }
 #ifdef DEBUGFEATUREVECTORFLAG
