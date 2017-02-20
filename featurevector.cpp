@@ -8,7 +8,7 @@ unsigned int CFeatureVector::NUMBER_OF_FEATURES        = 6;
 unsigned int CFeatureVector::NUMBER_OF_FEATURE_VECTORS = 0;
 double       CFeatureVector::FEATURE_RANGE             = 6.0;
 //new feature depth variable
-unsigned int CFeatureVector::FEATURE_DEPTH             = 1;
+unsigned int CFeatureVector::FEATURE_DEPTH             = 2;
 
 /******************************************************************************/
 /******************************************************************************/
@@ -48,32 +48,32 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_fRelativeVelocityDirThreshold = 0.05  * (m_pcAgent->GetMaximumAngularVelocity());
 */
  //new code for features with more than one possible value. feature depth is number of bits, so 2^n possible values
-    m_pfVelocityBands = new float[2^FEATURE_DEPTH];
-    m_pfAccelerationBands = new float[2^FEATURE_DEPTH];
+    m_pfVelocityBands = new float[FEATURE_DEPTH];
+    m_pfAccelerationBands = new float[FEATURE_DEPTH];
 
-    m_pfAngularVelocityBands = new float[2^FEATURE_DEPTH];
-    m_pfAngularAccelerationBands = new float[2^FEATURE_DEPTH];
+    m_pfAngularVelocityBands = new float[FEATURE_DEPTH];
+    m_pfAngularAccelerationBands = new float[FEATURE_DEPTH];
 
-    m_pfRelativeVelocityMagBands = new float[2^FEATURE_DEPTH];
-    m_pfRelativeVelocityDirBands = new float[2^FEATURE_DEPTH];
+    m_pfRelativeVelocityMagBands = new float[FEATURE_DEPTH];
+    m_pfRelativeVelocityDirBands = new float[FEATURE_DEPTH];
 
-    m_pfSquaredDistBands = new float[2^FEATURE_DEPTH];
+    m_pfSquaredDistBands = new float[FEATURE_DEPTH];
 
 
-    for(unsigned int i = 0; i < (2^FEATURE_DEPTH); i++)
+    for(unsigned int i = 0; i < (FEATURE_DEPTH); i++)
     {
 //entire range of possible values split equally into 2^FEATURE_DEPTH bands
 //could incorporate the 0.05 and 0.032 values used previously to avoid noise
-        m_pfVelocityBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
-        m_pfAccelerationBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
+        m_pfVelocityBands[i] = i * (1/(FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
+        m_pfAccelerationBands[i] = i * (1/(FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
 
-        m_pfAngularVelocityBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
-        m_pfAngularAccelerationBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
+        m_pfAngularVelocityBands[i] = i * (1/(FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
+        m_pfAngularAccelerationBands[i] = i * (1/(FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
 
-        m_pfRelativeVelocityMagBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
-        m_pfRelativeVelocityDirBands[i] = i * (1/(2^FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
+        m_pfRelativeVelocityMagBands[i] = i * (1/(FEATURE_DEPTH)) * (m_pcAgent->GetMaximumSpeed());
+        m_pfRelativeVelocityDirBands[i] = i * (1/(FEATURE_DEPTH)) * (m_pcAgent->GetMaximumAngularVelocity());
 
-        m_pfSquaredDistBands[i] = i * (1/(2^FEATURE_DEPTH)) * ((m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow) *
+        m_pfSquaredDistBands[i] = i * (1/(FEATURE_DEPTH)) * ((m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow) *
                                                                 (m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow));
     }
 
@@ -141,11 +141,21 @@ unsigned int CFeatureVector::SimulationStep()
     ComputeFeatureValues();
     m_unValue = 0;
 
-    for(unsigned int i = 0; i < m_unLength*FEATURE_DEPTH; i++)
-    {
-        m_unValue += ((unsigned int)m_pfFeatureValues[i] << (FEATURE_DEPTH * i));
+    if(m_pcAgent->GetIdentification() == 1){
+       printf("\n Normal Agent ");
     }
 
+    for(unsigned int i = 0; i < m_unLength*FEATURE_DEPTH; i++)
+    {
+        m_unValue += (unsigned int)m_pfFeatureValues[i] * (unsigned int)pow(FEATURE_DEPTH,i); // << (FEATURE_DEPTH * i));
+
+        if(m_pcAgent->GetIdentification() == 1){
+            printf("Feature Value: %f, Current FV: %d;     ",m_pfFeatureValues[i], m_unValue);
+        }
+    }
+    if (m_pcAgent->GetIdentification() == 1){
+        printf("\n");
+    }
 //    for (unsigned int i = 0; i < m_unLength; i++)
 //        m_unValue += (unsigned int)m_pfFeatureValues[i] * (1 << i);
 
@@ -192,23 +202,36 @@ void CFeatureVector::ComputeFeatureValues()
         else
             m_pfFeatureValues[1] = 0.0;
 */
+    bool notSet1 = true, notSet2 = true;
 
-        for(int i = 0; i < 2^FEATURE_DEPTH; i++)
+        for(int i = 0; i < FEATURE_DEPTH-1; i++)
         {
-            if( (m_unSumTimeStepsNbrsRange0to3 >= (i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
-                && (m_unSumTimeStepsNbrsRange0to3 < (i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow) )
+            if( (m_unSumTimeStepsNbrsRange0to3 >= (i * (1/(FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
+                && (m_unSumTimeStepsNbrsRange0to3 < (i+1) * (1/(FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow) )
             {
                 m_pfFeatureValues[0] = i;
+                notSet1 = false;
                 break;
             }
 
-            if ( (m_unSumTimeStepsNbrsRange3to6 >= (i * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
-                && (m_unSumTimeStepsNbrsRange3to6 < ((i+1) * (1/(2^FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
+            if ( (m_unSumTimeStepsNbrsRange3to6 >= (i * (1/(FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
+                && (m_unSumTimeStepsNbrsRange3to6 < ((i+1) * (1/(FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
             {
                 m_pfFeatureValues[1] = i;
+                notSet2 = false;
                 break;
             }
         }
+
+        if (notSet1 == true)
+            m_pfFeatureValues[0] = FEATURE_DEPTH-1;
+
+        if (notSet2 == true)
+            m_pfFeatureValues[1] = FEATURE_DEPTH-1;
+
+
+        if(m_pcAgent->GetIdentification() == 1)
+            printf("\n SumTimeSteps03: %d, SumTimeSteps36: %d \n", m_unSumTimeStepsNbrsRange0to3, m_unSumTimeStepsNbrsRange3to6);
 
         // removing the first entry of the moving time window  from the sum
         m_unSumTimeStepsNbrsRange0to3 -=  m_punNbrsRange0to3AtTimeStep[m_unNbrsCurrQueueIndex];
@@ -275,7 +298,7 @@ void CFeatureVector::ComputeFeatureValues()
 
     int accelerationBand = 0;
 
-    for(int i = 0; i < 2^FEATURE_DEPTH; i++)
+    for(int i = 0; i < FEATURE_DEPTH-1; i++)
     {
         if(dist_nbrsagents < 6.0 &&
           ( (angle_acceleration >= m_pfAngularAccelerationBands[i] && angle_acceleration < m_pfAngularAccelerationBands[i+1]) ||
@@ -323,7 +346,7 @@ void CFeatureVector::ComputeFeatureValues()
         else
             m_pfFeatureValues[4] = 0.0;
 */
-        for(int i = 0; i < 2^FEATURE_DEPTH; i++)
+        for(int i = 0; i < FEATURE_DEPTH-1; i++)
         {
             if((m_fSquaredDistTravelled >= m_pfSquaredDistBands[i]) && (m_fSquaredDistTravelled < m_pfSquaredDistBands[i+1]))
             {
@@ -340,7 +363,7 @@ void CFeatureVector::ComputeFeatureValues()
 
     //6th: velocity, higher than 5% of speed is accepted as feature=1
 //    m_pfFeatureValues[5] = (mag_velocity >= m_fVelocityThreshold) ? 1.0:0.0;
-    for(int i = 0; i < 2^FEATURE_DEPTH; i++)
+    for(int i = 0; i < FEATURE_DEPTH-1; i++)
     {
         if(mag_velocity >= m_pfVelocityBands[i] && mag_velocity < m_pfVelocityBands[i+1])
         {
