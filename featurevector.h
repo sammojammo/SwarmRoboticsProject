@@ -31,7 +31,7 @@ public:
     static unsigned int NUMBER_OF_FEATURES;
     static unsigned int NUMBER_OF_FEATURE_VECTORS;
     static double       FEATURE_RANGE;
-    static unsigned int FEATURE_DEPTH;                      /***bit depth of features**/
+    static double       FEATURE_DEPTH;                      /***bit depth of features**/
 
     virtual unsigned int GetValue() const;
     virtual unsigned int GetLength() const;
