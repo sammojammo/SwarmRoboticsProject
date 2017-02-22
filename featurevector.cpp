@@ -60,7 +60,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_pfSquaredDistBands = new float[(int)FEATURE_DEPTH];
 
 
-    for(int i = 0; i < FEATURE_DEPTH-1; i++)
+    for(int i = 0; i < FEATURE_DEPTH; i++)
     {
 //entire range of possible values split equally into FEATURE_DEPTH bands
 //could incorporate the 0.05 and 0.032 values used previously to avoid noise
@@ -90,12 +90,12 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 
     m_fSquaredDistTravelled = 0.0;
 
-    for(int i = 0; i < FEATURE_DEPTH-1; i++)
+    for(int i = 0; i < FEATURE_DEPTH; i++)
     {
         m_pfSquaredDistBands[i] = i * (1/FEATURE_DEPTH) * ((m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow) *
                                                                 (m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow));
     }
-    //old squared dist threshold calculation code
+
     //m_fSquaredDistThreshold = (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow)) *
     //        (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow));
 
