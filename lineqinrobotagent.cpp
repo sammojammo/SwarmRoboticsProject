@@ -1,4 +1,5 @@
 #include "lineqinrobotagent.h"
+#include <math.h>
 
 /******************************************************************************/
 /******************************************************************************/
@@ -236,7 +237,10 @@ double LINEQinRobotAgent::NormalizedAffinity(unsigned int v1, unsigned int v2)
 
 double LINEQinRobotAgent::GetAf(unsigned int i, unsigned int j)
 {
-    return NegExpDistAffinity(i,j,m_fcross_affinity);
+    //return NegExpDistAffinity(i,j,m_fcross_affinity);
+
+    /*New affinity function based on euclidean distance*/
+    return GetAfEuclidean(i,j);
 }
 
 /******************************************************************************/
@@ -259,6 +263,37 @@ double LINEQinRobotAgent::NegExpDistAffinity(unsigned int v1, unsigned int v2, d
     // Should we normalize the hammingdistance when input to the exp function, or as above?
 
     return 1.0 * exp(-(1.0/k) * (double)hammingdistance / (double) CFeatureVector::NUMBER_OF_FEATURES);
+
+}
+
+double LINEQinRobotAgent::GetAfEuclidean(unsigned int fv1, unsigned int fv2)
+{
+    /*Create mask using bit depth of each feature*/
+    unsigned int featureMask = 0;
+
+    for(int i = 0; i < CFeatureVector::FEATURE_DEPTH; i++)
+        featureMask += (1 << i);
+
+    unsigned int value1 = 0, value2 = 0, currentSum = 0;
+
+    /*Looping through the feature vectors extracting each feature value*/
+    /*Feature 2 subtracted from feature 1. result is squared and added to current running total*/
+    for(int i = 0; i < CFeatureVector::NUMBER_OF_FEATURES; i++)
+    {
+        /*shift FV right so the & operation gives the binary value of the feature without 0 padding to the right of it*/
+        value1 = ((fv1 >> (i * (unsigned int)CFeatureVector::FEATURE_DEPTH)) & featureMask);
+        value2 = ((fv2 >> (i * (unsigned int)CFeatureVector::FEATURE_DEPTH)) & featureMask);
+
+        currentSum += ((value1 - value2) * (value1 - value2));
+    }
+
+    /*Square root running total to give euclidean distance*/
+    double euclideanDistance = sqrt(currentSum);
+
+    return euclideanDistance;
+
+    //Code below copied from NegExpDistAffinity() function which uses hamming distance. not sure what this line is for so commented out for now
+    //return 1.0 * exp(-(1.0/k) * euclideanDistance / (double)CFeatureVector::NUMBER_OF_FEATURES);
 }
 
 /******************************************************************************/
