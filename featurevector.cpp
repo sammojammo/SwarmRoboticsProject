@@ -8,7 +8,7 @@ unsigned int CFeatureVector::NUMBER_OF_FEATURES        = 6;
 unsigned int CFeatureVector::NUMBER_OF_FEATURE_VECTORS = 0;
 double       CFeatureVector::FEATURE_RANGE             = 6.0;
 //new feature depth variable - number of possible values each feature can have
-double       CFeatureVector::FEATURE_DEPTH             = 4;
+double       CFeatureVector::FEATURE_DEPTH             = 4.0;
 
 /******************************************************************************/
 /******************************************************************************/
@@ -142,15 +142,21 @@ unsigned int CFeatureVector::SimulationStep()
     ComputeFeatureValues();
     m_unValue = 0;
 
-    if(m_pcAgent->GetIdentification() == 1){ //print statements here to track normal agent (ID 1)
-       printf("\n\nTracking Normal Agent Values\n");
+    if(m_pcAgent->GetIdentification() == 1){ //print statements here to track normal agents (ID 1 & 3), and abnormal agent (ID 15)
+       printf("\n\nTracking Normal Agent 1 Values\n");
+    }
+    else if(m_pcAgent->GetIdentification() == 3){
+        printf("\n\nTracking Normal Agent 3 Values\n");
+    }
+    else if(m_pcAgent->GetIdentification() == 15){
+        printf("\n\nTracking Abnormal Agent Values\n");
     }
 
     for(unsigned int i = 0; i < m_unLength; i++)
     {
         m_unValue += (unsigned int)m_pfFeatureValues[i] * (unsigned int)pow(FEATURE_DEPTH,i); // << (FEATURE_DEPTH * i));
 
-        if(m_pcAgent->GetIdentification() == 1){
+        if(m_pcAgent->GetIdentification() == 1 || m_pcAgent->GetIdentification() == 15 || m_pcAgent->GetIdentification() == 3){
             printf("FNum: %d, Feature Value: %0.1f, Current FV: %d;\n", (i+1), m_pfFeatureValues[i], m_unValue);
         }
     }
@@ -351,10 +357,6 @@ void CFeatureVector::ComputeFeatureValues()
 
         for(int i = 0; i < FEATURE_DEPTH-1; i++)
         {
-            if(m_pcAgent->GetIdentification() == 1)
-            {
-                printf("\nDist: %0.2f; testing band %d, range %0.2f : %0.2f",m_fSquaredDistTravelled, i, m_pfSquaredDistBands[i], m_pfSquaredDistBands[i+1]);
-            }
             if((m_fSquaredDistTravelled >= m_pfSquaredDistBands[i]) && (m_fSquaredDistTravelled < m_pfSquaredDistBands[i+1]))
             {
                 m_pfFeatureValues[4] = i;

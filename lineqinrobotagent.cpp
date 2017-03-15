@@ -240,7 +240,7 @@ double LINEQinRobotAgent::GetAf(unsigned int i, unsigned int j)
     //return NegExpDistAffinity(i,j,m_fcross_affinity);
 
     /*New affinity function based on euclidean distance*/
-    return GetAfEuclidean(i,j);
+    return GetAfEuclidean(i,j, m_fcross_affinity);
 }
 
 /******************************************************************************/
@@ -266,7 +266,7 @@ double LINEQinRobotAgent::NegExpDistAffinity(unsigned int v1, unsigned int v2, d
 
 }
 
-double LINEQinRobotAgent::GetAfEuclidean(unsigned int fv1, unsigned int fv2)
+double LINEQinRobotAgent::GetAfEuclidean(unsigned int fv1, unsigned int fv2, double k)
 {
     /*Create mask using bit depth of each feature*/
     unsigned int featureMask = 0;
@@ -290,10 +290,8 @@ double LINEQinRobotAgent::GetAfEuclidean(unsigned int fv1, unsigned int fv2)
     /*Square root running total to give euclidean distance*/
     double euclideanDistance = sqrt(currentSum);
 
-    return euclideanDistance;
-
-    //Code below copied from NegExpDistAffinity() function which uses hamming distance. not sure what this line is for so commented out for now
-    //return 1.0 * exp(-(1.0/k) * euclideanDistance / (double)CFeatureVector::NUMBER_OF_FEATURES);
+    //return euclideanDistance;
+    return 1.0 * exp(-(1.0/k) * euclideanDistance / (double)CFeatureVector::NUMBER_OF_FEATURES);
 }
 
 /******************************************************************************/

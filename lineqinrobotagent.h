@@ -55,7 +55,7 @@ protected:
 
     static double NormalizedAffinity(unsigned int v1, unsigned int v2);
     static double NegExpDistAffinity(unsigned int v1, unsigned int v2, double k);
-    static double GetAfEuclidean(unsigned int v1, unsigned int v2);
+    static double GetAfEuclidean(unsigned int v1, unsigned int v2, double k);
     double GetAf(unsigned int v1, unsigned int v2);
 
     virtual void UpdateState();
