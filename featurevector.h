@@ -36,6 +36,8 @@ public:
     virtual unsigned int GetValue() const;
     virtual unsigned int GetLength() const;
 
+    virtual float GetFeatureValue(int featureNum) const;
+
     void PrintFeatureDetails();
 
     virtual unsigned int SimulationStep();

@@ -18,7 +18,7 @@
 #  define CROBOTAGENT CRobotAgentOptimised
 #else
 #  define CROBOTAGENT CRobotAgent
-#endif                            
+#endif
 
 
 /******************************************************************************/
@@ -29,7 +29,7 @@ CTestExperiment::CTestExperiment(CArguments* pc_experiment_arguments,
                                  CArguments* pc_agent_arguments,
                                  CArguments* pc_model_arguments) :
     CExperiment(pc_experiment_arguments, pc_arena_arguments, pc_agent_arguments, pc_model_arguments)
-{    
+{
     static bool bHelpDisplayed = false;
 
     const char* swarmbehav = pc_experiment_arguments->GetArgumentAsStringOr("swarmbehav", "FLOCKING");
@@ -204,11 +204,11 @@ CTestExperiment::~CTestExperiment()
 /******************************************************************************/
 /******************************************************************************/
 
-CAgent* CTestExperiment::CreateAgent() 
+CAgent* CTestExperiment::CreateAgent()
 {
     static unsigned int id = 0;
     static CAgent* pcPreviousAgent = NULL;
-    
+
     vector<CBehavior*> vecBehaviors;
     vecBehaviors = GetAgentBehavior(m_eswarmbehavType, pcPreviousAgent);
 
@@ -270,11 +270,11 @@ CAgent* CTestExperiment::CreateAgent()
 /******************************************************************************/
 /******************************************************************************/
 
-void CTestExperiment::PrintVelocityDifference(CAgent* pc_agent, double f_range) 
+void CTestExperiment::PrintVelocityDifference(CAgent* pc_agent, double f_range)
 {
     // Velocity magnitude and direction wrt. surrounding agents:
     TVector2d tTemp    = pc_agent->GetAverageVelocityOfSurroundingAgents(f_range, ROBOT);
-    
+
     float dir_relativeagentvelocity = 0;
     float tmp_agentvelocity         = Vec2dLength((*pc_agent->GetVelocity()));
     float mag_relativeagentvelocity = tmp_agentvelocity - Vec2dLength((tTemp));
@@ -314,7 +314,7 @@ void CTestExperiment::PrintStatsForAgent(CAgent* pc_agent)
     unsigned int unAgentsWithIn6            = pc_agent->CountAgents(6.0, ROBOT);
     unsigned int unAgentsWithIn8            = pc_agent->CountAgents(8.0, ROBOT);
     unsigned int unAgentsWithIn10           = pc_agent->CountAgents(10.0, ROBOT);
-    
+
     printf("AgentsWithin - 2: %d, 4: %d, 6: %d, 8: %d, 10: %d, ", unAgentsWithIn2, unAgentsWithIn4, unAgentsWithIn6, unAgentsWithIn8, unAgentsWithIn10);
 
     double fAverageDistanceToAgentsWithin2  = pc_agent->GetAverageDistanceToSurroundingAgents(2.0, ROBOT);
@@ -554,7 +554,20 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
             bool dbgflag = false;
 
             tmp_robotagent->CheckNeighborsResponseToMyFV(&unToleraters, &unAttackers, &unNbrsInSensoryRange, dbgflag);
-            printf("\nResponsestoAllAgents: Step: %d, Id: %d, FV: %d, tol: %d, att: %d, neighboursinsensoryrange: %d", un_step_number, tmp_robotagent->GetIdentification(), tmp_fv->GetValue(), unToleraters, unAttackers, unNbrsInSensoryRange);
+            //printf("\nResponsestoAllAgents: Step: %d, Id: %d, FV: %d, tol: %d, att: %d, neighboursinsensoryrange: %d", un_step_number, tmp_robotagent->GetIdentification(), tmp_fv->GetValue(), unToleraters, unAttackers, unNbrsInSensoryRange);
+            //if statement is for console output so features line up and are easier to read (previously, for ID 10 and above data was one space right so harder to read)
+            if(tmp_robotagent->GetIdentification() < 10)
+            {
+                printf("\nStep: %d, Id: 0%d, Features1-6: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, nbrsinrange: %d, att: %d, tol: %d", un_step_number, tmp_robotagent->GetIdentification(),
+                    tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
+                    unNbrsInSensoryRange, unToleraters, unAttackers);
+            }
+            else
+            {
+                printf("\nStep: %d, Id: %d, Features1-6: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, nbrsinrange: %d, att: %d, tol: %d", un_step_number, tmp_robotagent->GetIdentification(),
+                    tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
+                    unNbrsInSensoryRange, unToleraters, unAttackers);
+            }
             i++;
         }
         printf("\n");
@@ -622,7 +635,7 @@ void CTestExperiment::ChaseAndCaptureAgent(CAgent* pc_agent_to_chase, unsigned i
         double fArenaSizeY;
         CSimulator::GetInstance()->GetArena()->GetSize(&fArenaSizeX, &fArenaSizeY);
         vec_behaviors.push_back(new CHomingBehavior(max(fArenaSizeX, fArenaSizeY), pc_agent_to_chase));
-        
+
 #ifdef OPTIMISED
         ((CRobotAgentOptimised*)tSortedAgents[i])->SetBehaviors(vec_behaviors);
 #else
@@ -636,7 +649,7 @@ void CTestExperiment::ChaseAndCaptureAgent(CAgent* pc_agent_to_chase, unsigned i
 void CTestExperiment::SpreadBehavior(ESwarmBehavType e_behavior, double f_probability)
 {
     TAgentList listInfectedAgents;
-    
+
     TAgentVector* vecAllAgents = CSimulator::GetInstance()->GetAllAgents();
     for (TAgentVectorIterator i = vecAllAgents->begin(); i != vecAllAgents->end(); i++)
     {
@@ -653,10 +666,10 @@ void CTestExperiment::SpreadBehavior(ESwarmBehavType e_behavior, double f_probab
     {
         if (Random::nextDouble() < f_probability)
         {
-            
+
             TAgentVector tSortedAgents;
             (*j)->SortAllAgentsAccordingToDistance(&tSortedAgents);
-            
+
             unsigned index = 1;
             bool     found = false;
             do {

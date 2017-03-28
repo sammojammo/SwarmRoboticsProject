@@ -125,6 +125,12 @@ unsigned int CFeatureVector::GetValue() const
 {
     return m_unValue;
 }
+/******************************************************************************/
+/*new function to return value of specific feature, specified by parameter featureNum*/
+float CFeatureVector::GetFeatureValue(int featureNum) const
+{
+    return m_pfFeatureValues[featureNum];
+}
 
 /******************************************************************************/
 /******************************************************************************/
@@ -142,23 +148,9 @@ unsigned int CFeatureVector::SimulationStep()
     ComputeFeatureValues();
     m_unValue = 0;
 
-    if(m_pcAgent->GetIdentification() == 1){ //print statements here to track normal agents (ID 1 & 3), and abnormal agent (ID 15)
-       printf("\n\nTracking Normal Agent 1 Values\n");
-    }
-    else if(m_pcAgent->GetIdentification() == 3){
-        printf("\n\nTracking Normal Agent 3 Values\n");
-    }
-    else if(m_pcAgent->GetIdentification() == 15){
-        printf("\n\nTracking Abnormal Agent Values\n");
-    }
-
     for(unsigned int i = 0; i < m_unLength; i++)
     {
         m_unValue += (unsigned int)m_pfFeatureValues[i] * (unsigned int)pow(FEATURE_DEPTH,i); // << (FEATURE_DEPTH * i));
-
-        if(m_pcAgent->GetIdentification() == 1 || m_pcAgent->GetIdentification() == 15 || m_pcAgent->GetIdentification() == 3){
-            printf("FNum: %d, Feature Value: %0.1f, Current FV: %d;\n", (i+1), m_pfFeatureValues[i], m_unValue);
-        }
     }
 //    for (unsigned int i = 0; i < m_unLength; i++)
 //        m_unValue += (unsigned int)m_pfFeatureValues[i] * (1 << i);
