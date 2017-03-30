@@ -4,7 +4,6 @@
 /******************************************************************************/
 /******************************************************************************/
 
-
 LINEQinRobotAgent::LINEQinRobotAgent(CRobotAgent* ptr_robotAgent, CArguments* m_lineqArguments)
 {
     robotAgent = ptr_robotAgent;
@@ -290,8 +289,10 @@ double LINEQinRobotAgent::GetAfEuclidean(unsigned int fv1, unsigned int fv2, dou
     /*Square root running total to give euclidean distance*/
     double euclideanDistance = sqrt(currentSum);
 
+    double maxEuclideanDistance = sqrt(CFeatureVector::NUMBER_OF_FEATURES * (CFeatureVector::FEATURE_DEPTH * CFeatureVector::FEATURE_DEPTH));
+
     //return euclideanDistance;
-    return 1.0 * exp(-(1.0/k) * euclideanDistance / (double)CFeatureVector::NUMBER_OF_FEATURES);
+    return 1.0 * exp( ((-1.0/k) * euclideanDistance) / maxEuclideanDistance);
 }
 
 /******************************************************************************/
