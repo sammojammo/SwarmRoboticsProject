@@ -130,7 +130,7 @@ void CBioInstSim::ParseArguments()
 
     // First parse the options:
     while ((cOption = getopt_long(m_argc, m_argv,
-                                  "hvs:a:e:T:M:A:zn:SZ:c:d:",
+                                  "hvs:a:e:T:M:A:zn:SZ:c:",
                                   m_tLongOptions, &nOptionIndex)) != -1)
     {
         if (nOptionIndex <= 0)
@@ -207,10 +207,6 @@ void CBioInstSim::ParseArguments()
 
         case 'S':
             m_bOutputStatistics = false;
-            break;
-        /*New parameter added - bit depth of features*/
-        case 'd':
-            CFeatureVector::FEATURE_DEPTH = atof(optarg);
             break;
 
         default:

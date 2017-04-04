@@ -34,6 +34,7 @@ CRobotAgentOptimised::CRobotAgentOptimised(const char* pch_name, unsigned int un
     m_uSelectedNumNearestNbrs     = pc_arguments->GetArgumentAsIntOr("selectnumnearestnbrs", 10);
     m_uNumVotingNbrs              = pc_arguments->GetArgumentAsIntOr("numvotingnbrs", 10);
 
+    CFeatureVector::FEATURE_DEPTH = pc_arguments->GetArgumentAsDoubleOr("featuredepth", 4.0);
 
     if(pc_arguments->GetArgumentIsDefined("help") && !bHelpDisplayed)
         printf("fvsenserange=#.#              Range at which other agents' FVs are sensed [%f]\n"
@@ -41,12 +42,14 @@ CRobotAgentOptimised::CRobotAgentOptimised(const char* pch_name, unsigned int un
                "responserange=#.#             Range at which a robot \"reponds\" to other features [%f]\n"
                "selectnumnearestnbrs=#        The number of nearest neighbours for FV sensing and T-cell diffusion (makes fvsenserange redundant) [%d]\n"
                "numvotingnbrs=#               The number of nearest neighbours for voting an agent abnormal) [%d]\n"
+               "featuredepth=#.#              The number of possible values a feature can have [%f]\n"
                ,
                m_fFVSenseRange,
                CFeatureVector::FEATURE_RANGE,
                m_fResponseRange,
                m_uSelectedNumNearestNbrs,
-               m_uNumVotingNbrs
+               m_uNumVotingNbrs,
+               CFeatureVector::FEATURE_DEPTH
                );
 
 
@@ -364,12 +367,12 @@ unsigned int CRobotAgentOptimised::GetColor()
             return RED;
     }
     //changing initial colours so tracked normal agents are dark green, abnormal agent is dark red
-    if(GetIdentification() == 1)
+   if(GetIdentification() == 1)
         return HALFGREEN;
-    else if(GetIdentification() == 3)
+   else if(GetIdentification() == 3)
         return HALFGREEN;
-    if(GetIdentification() == 15)
-        return HALFRED;
+   if(GetIdentification() == 15)
+       return HALFRED;
 
     return BLUE;
 
