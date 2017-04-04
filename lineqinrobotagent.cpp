@@ -18,7 +18,7 @@ LINEQinRobotAgent::LINEQinRobotAgent(CRobotAgent* ptr_robotAgent, CArguments* m_
 
     /******************************************************************************/
     //LINEQ - FV
-    m_fMemory                          = m_lineqArguments->GetArgumentAsDoubleOr("lineqfv_memory", 0.4);
+    m_fMemory                          = m_lineqArguments->GetArgumentAsDoubleOr("lineqfv_memory", 0.0);
     m_fThreshold                       = m_lineqArguments->GetArgumentAsDoubleOr("lineqfv_threshold",  0.004);
     /******************************************************************************/
 
