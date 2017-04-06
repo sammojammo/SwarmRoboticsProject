@@ -52,18 +52,18 @@ using namespace std;
 
 class CRobotAgentOptimised : public CAgent
 {
-public: 
+public:
     CRobotAgentOptimised(const char* pch_name, unsigned int un_identification, CArguments* pc_agent_arguments, CArguments* pc_model_arguments, TBehaviorVector vec_behaviors);
     virtual ~CRobotAgentOptimised();
-    
+
     // This method is called if the agent moves to a new arena square.
     // Useful to calculate distances to other agents, update physical
     // links etc.
-    virtual void SimulationStepUpdatePosition();    
+    virtual void SimulationStepUpdatePosition();
     virtual void SetBehaviors(TBehaviorVector vec_behaviors);
     virtual void ClearBehaviors();
     virtual TBehaviorVector GetBehaviors();
-    
+
     virtual inline EAgentType   GetType() {return ROBOT;}
 
     virtual CRobotAgentOptimised* GetRandomRobotWithWeights(double f_range);

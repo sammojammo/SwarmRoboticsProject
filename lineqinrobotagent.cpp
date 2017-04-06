@@ -110,6 +110,7 @@ void LINEQinRobotAgent::SimulationStepUpdatePosition()
         for(unsigned inputindex=0; inputindex < m_unNumberOfReceptors; inputindex++)
             inputs += GetAf(index,inputindex) * m_pfAPCs[inputindex];
 
+//As m_fMemory is 0, m_pfLineqFV = inputs (=Yi)
         m_pfLineqFV[index]  = (1.0 - m_fMemory) * inputs +
                               m_fMemory * m_pfLineqFV[index];
 

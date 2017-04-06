@@ -63,7 +63,7 @@ CRobotAgent::CRobotAgent(const char* pch_name, unsigned int un_identification, C
 /******************************************************************************/
 /******************************************************************************/
 
-CRobotAgent::~CRobotAgent() 
+CRobotAgent::~CRobotAgent()
 {
     for (TBehaviorVectorIterator i = m_vecBehaviors.begin(); i != m_vecBehaviors.end(); i++)
     {
@@ -83,14 +83,14 @@ void CRobotAgent::SimulationStepUpdatePosition()
     for (TBehaviorVectorIterator i = m_vecBehaviors.begin(); i != m_vecBehaviors.end(); i++)
     {
         (*i)->SimulationStep();
-        if (!bControlTaken) 
+        if (!bControlTaken)
         {
             bControlTaken = (*i)->TakeControl();
             if (bControlTaken)
                 (*i)->Action();
         } else {
             (*i)->Suppress();
-        }          
+        }
     }
 
     // Update the model (T-cells of the CRM instance for this robot), CTRNN neuron activations, lineq on fvs
@@ -149,13 +149,13 @@ float* CRobotAgent::GetFeaturesSensed() const
 
 CRobotAgent* CRobotAgent::GetRandomRobotWithWeights(double f_range)
 {
-    TAgentListList tAgentListList; 
+    TAgentListList tAgentListList;
     CSimulator::GetInstance()->GetArena()->GetAgentsCloseTo(&tAgentListList, GetPosition(), f_range);
 
     if (tAgentListList.size() == 0)
     {
-        ERROR2("This should never happen - the agent list-list is empty - maybe the position of the agent is wrong (%f,%f)", 
-               m_tPosition.x, 
+        ERROR2("This should never happen - the agent list-list is empty - maybe the position of the agent is wrong (%f,%f)",
+               m_tPosition.x,
                m_tPosition.y);
     }
 
@@ -163,7 +163,7 @@ CRobotAgent* CRobotAgent::GetRandomRobotWithWeights(double f_range)
     if (fWeightSum < 1e-10)
     {
         return NULL;
-    } 
+    }
     double fSelectedWeight  = Random::nextDouble() * fWeightSum;
 
     TAgentList* ptAgentList  = NULL;
@@ -171,8 +171,8 @@ CRobotAgent* CRobotAgent::GetRandomRobotWithWeights(double f_range)
     CAgent* pcAgentSelected  = NULL;
 
     do
-    {        
-        while ((*i)->size() == 0) 
+    {
+        while ((*i)->size() == 0)
         {
             i++;
         }
@@ -180,7 +180,7 @@ CRobotAgent* CRobotAgent::GetRandomRobotWithWeights(double f_range)
 
         while (j != (*i)->end() && fSelectedWeight > 0.0)
         {
-            if ((*j)->m_bTempWithInRange) 
+            if ((*j)->m_bTempWithInRange)
                 fSelectedWeight -= ((CRobotAgent*) (*j))->GetWeight();
             if (fSelectedWeight > 0.0)
                 j++;
@@ -202,7 +202,7 @@ CRobotAgent* CRobotAgent::GetRandomRobotWithWeights(double f_range)
                     }
                     else
                     {
-                        j++;                    
+                        j++;
                     }
                 }
 
@@ -212,14 +212,14 @@ CRobotAgent* CRobotAgent::GetRandomRobotWithWeights(double f_range)
 
         }
     } while (pcAgentSelected == NULL && i != tAgentListList.end());
-    
+
     if (i == tAgentListList.end())
     {
         ERROR("The random generator seems to be wrong");
-    } 
+    }
 
     return (CRobotAgent*) pcAgentSelected;
-} 
+}
 
 /******************************************************************************/
 /******************************************************************************/
@@ -269,7 +269,7 @@ CRobotAgent* CRobotAgent::GetRandomRobotWithWeights(unsigned int u_nearestnbrs)
     }
 
     if (fWeightSum < 1e-10)
-    {        
+    {
         return NULL;
     }
 

@@ -51,6 +51,7 @@ protected:
     CAgent*      m_pcAgent;
     unsigned int m_unValue;
     unsigned int m_unLength;
+    unsigned int m_unCorrectResponse;
 
     float*         m_pfFeatureValues;
     int*           m_piLastOccuranceEvent;
@@ -80,7 +81,7 @@ protected:
 
     float* m_pfSquaredDistBands;
 
-
+    float* m_pfCorrectResponseBands;
  /*************************/
 
 

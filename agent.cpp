@@ -19,13 +19,13 @@ double CAgent::RADIUS = 0.375;
 
 CAgent::CAgent(const char* pch_name, unsigned un_identification, CArguments* pc_arguments) :
         CSimObject(pch_name)
-{    
+{
     m_pcArguments = pc_arguments;
 
 
     const char* pchControllerType = pc_arguments->GetArgumentAsStringOr("controller", "RANDOMWALK");
 
-    if (strcmp(pchControllerType, "RANDOMWALK") == 0) 
+    if (strcmp(pchControllerType, "RANDOMWALK") == 0)
     {
         m_eControllerType = RANDOMWALK;
     }
@@ -36,7 +36,7 @@ CAgent::CAgent(const char* pch_name, unsigned un_identification, CArguments* pc_
     else if (strcmp(pchControllerType, "REGULARBOUNCE") == 0)
     {
         m_eControllerType = REGULARBOUNCE;
-    } 
+    }
 
     m_fMaximumSpeed                         = pc_arguments->GetArgumentAsDoubleOr("maxspeed",             0.01);
 
@@ -48,13 +48,13 @@ CAgent::CAgent(const char* pch_name, unsigned un_identification, CArguments* pc_
     m_fProportionalDirectionNoise = pc_arguments->GetArgumentAsDoubleOr("dirnoise", 0.0);
     m_fProportionalMagnitudeNoise = pc_arguments->GetArgumentAsDoubleOr("magnoise", 0.0);
 
-    if (pc_arguments->GetArgumentIsDefined("help") && !bHelpDisplayed) 
+    if (pc_arguments->GetArgumentIsDefined("help") && !bHelpDisplayed)
     {
         printf("Agent help:\n"
                "  controller=[RANDOMWALK,RANDOMBOUNCE,REGULARBOUNCE]\n"
                "  maxspeed=#.#             Max speed of the agents per time-step [%f]\n"
                "  recruitment_range=#.#    Max physical distance for recruitment only [%f]\n"
-               "  dirnoise=#.#             Proportional direction noise (in degrees) on velocity [%f]\n" 
+               "  dirnoise=#.#             Proportional direction noise (in degrees) on velocity [%f]\n"
                "  magnoise=#.#             Proportional magnitude noise on velocity [%f]\n",
                m_fMaximumSpeed,
                m_fMaximumPhysicalRange_Recruitment,
@@ -88,7 +88,7 @@ CAgent::CAgent(const char* pch_name, unsigned un_identification, CArguments* pc_
 /******************************************************************************/
 /******************************************************************************/
 
-CAgent::~CAgent() 
+CAgent::~CAgent()
 {
 }
 
@@ -180,6 +180,7 @@ void CAgent::GetRelativeAcceleration(double *mag_relacceleration, double *dir_re
 double CAgent::GetVectorAngle(TVector2d vector1, TVector2d vector2)
 {
     double vectorangle = 0.0;
+
     if (Vec2dLength(vector1) > EPSILON && Vec2dLength(vector2) > EPSILON)
     {
         vectorangle = acos(Vec2dCosAngle(vector1,vector2));
@@ -208,6 +209,7 @@ double CAgent::GetVectorAngle(TVector2d vector1, TVector2d vector2)
             }
         }
     }
+
     return vectorangle;
 }
 
@@ -235,7 +237,7 @@ void CAgent::SimulationStepUpdatePosition()
 {
     double fSpeed      = Vec2dLength(m_tVelocity);
     double fSpeedRatio = fSpeed / m_fMaximumSpeed;
-    
+
     if (fSpeedRatio > EPSILON && m_fProportionalDirectionNoise > EPSILON)
     {
         double fAngle = m_fProportionalDirectionNoise / 360.0 * (M_PI * 2.0) * fSpeedRatio * Random::nextNormGaussian();
@@ -245,7 +247,7 @@ void CAgent::SimulationStepUpdatePosition()
 
     if (fSpeedRatio > EPSILON && m_fProportionalMagnitudeNoise > EPSILON)
     {
-        double fMagnitude = 1.0 + m_fProportionalMagnitudeNoise * fSpeedRatio * Random::nextNormGaussian();        
+        double fMagnitude = 1.0 + m_fProportionalMagnitudeNoise * fSpeedRatio * Random::nextNormGaussian();
         if (fSpeed * fMagnitude > m_fMaximumSpeed)
         {
             fMagnitude = 1.0;
@@ -256,33 +258,33 @@ void CAgent::SimulationStepUpdatePosition()
 
 
     TVector2d tOldPosition = m_tPosition;
-    TVector2d tNewPosition = { m_tPosition.x + m_tVelocity.x, 
+    TVector2d tNewPosition = { m_tPosition.x + m_tVelocity.x,
                                m_tPosition.y + m_tVelocity.y  };
 
-    CSimulator::GetInstance()->GetArena()->MoveAgent(this, &tNewPosition);     
+    CSimulator::GetInstance()->GetArena()->MoveAgent(this, &tNewPosition);
 
     CAgent* pcCollidingAgent = GetClosestAgent(RADIUS * 2.0, ROBOT);
 
 
-    if (pcCollidingAgent) 
-    {        
+    if (pcCollidingAgent)
+    {
         // TVector2d vecCollidingAgentPos = *(pcCollidingAgent->GetPosition());
         // TVector2d vecTemp = vecCollidingAgentPos;
 
         // vecTemp.x = vecTemp.x - GetPosition()->x;
         // vecTemp.y = vecTemp.y - GetPosition()->y;
-        
+
         // Vec2dNormalize(vecTemp);
 
-        // vecTemp.x = (-vecTemp.x * RADIUS * 2.0 + vecCollidingAgentPos.x); 
-        // vecTemp.y = (-vecTemp.y * RADIUS * 2.0 + vecCollidingAgentPos.y); 
-        
+        // vecTemp.x = (-vecTemp.x * RADIUS * 2.0 + vecCollidingAgentPos.x);
+        // vecTemp.y = (-vecTemp.y * RADIUS * 2.0 + vecCollidingAgentPos.y);
+
         // CSimulator::GetInstance()->GetArena()->MoveAgent(this, &vecTemp);
 
         // m_tVelocity.x = 0;
         // m_tVelocity.y = 0;
-        
-        CSimulator::GetInstance()->GetArena()->MoveAgent(this, &tOldPosition);     
+
+        CSimulator::GetInstance()->GetArena()->MoveAgent(this, &tOldPosition);
     }
 }
 
@@ -348,7 +350,7 @@ CAgent* CAgent::GetRandomAgentWithinRange(TAgentListList* pt_agents_list_list, d
     if (unNumberOfAgents == 0)
     {
         return NULL;
-    } 
+    }
     unsigned int unSelectedAgent  = Random::nextInt(0, unNumberOfAgents);
 
     TAgentList* ptAgentList  = NULL;
@@ -356,16 +358,16 @@ CAgent* CAgent::GetRandomAgentWithinRange(TAgentListList* pt_agents_list_list, d
     CAgent* pcAgentSelected  = NULL;
 
     do
-    {        
-        while ((*i)->size() == 0) 
+    {
+        while ((*i)->size() == 0)
         {
             i++;
         }
         TAgentListIterator j = (*i)->begin();
 
-        while (j != (*i)->end() && unSelectedAgent > 0) 
+        while (j != (*i)->end() && unSelectedAgent > 0)
         {
-            if ((*j)->m_bTempWithInRange) 
+            if ((*j)->m_bTempWithInRange)
                 unSelectedAgent--;
             if (unSelectedAgent > 0)
                 j++;
@@ -387,7 +389,7 @@ CAgent* CAgent::GetRandomAgentWithinRange(TAgentListList* pt_agents_list_list, d
                     }
                     else
                     {
-                        j++;                    
+                        j++;
                     }
                 }
 
@@ -397,21 +399,21 @@ CAgent* CAgent::GetRandomAgentWithinRange(TAgentListList* pt_agents_list_list, d
 
         }
     } while (pcAgentSelected == NULL && i != pt_agents_list_list->end());
-    
+
     if (i == pt_agents_list_list->end())
     {
         ERROR("The random generator seems to be wrong");
-    } 
+    }
 
     return pcAgentSelected;
-} 
+}
 
 /******************************************************************************/
 /******************************************************************************/
 
 void CAgent::SetRandomVelocity()
 {
-    double fSpeed = m_fMaximumSpeed;    
+    double fSpeed = m_fMaximumSpeed;
     double fAngle = Random::nextDouble() * 2.0 * 3.141592;
 
     m_tVelocity.x = cos(fAngle) * fSpeed;
@@ -421,7 +423,7 @@ void CAgent::SetRandomVelocity()
 /******************************************************************************/
 /******************************************************************************/
 
-unsigned int CAgent::GetColor() 
+unsigned int CAgent::GetColor()
 {
     return m_unColor;
 }
@@ -429,7 +431,7 @@ unsigned int CAgent::GetColor()
 /******************************************************************************/
 /******************************************************************************/
 
-double   CAgent::GetSize() 
+double   CAgent::GetSize()
 {
     return 2.0;
 }
@@ -456,14 +458,14 @@ int CAgent::GetBehavIdentification()
 /******************************************************************************/
 
 void CAgent::MoveTowards(TVector2d t_position, double f_max_speed)
-{    
+{
     CArena* pcArena = CSimulator::GetInstance()->GetArena();
     double fArenaWidth;
     double fArenaHeight;
     pcArena->GetSize(&fArenaWidth, &fArenaHeight);
 
     if (CArena::g_bIsBoundless)
-    { 
+    {
 
         if (fabs(t_position.x - m_tPosition.x) > fArenaWidth / 2.0)
         {
@@ -491,16 +493,16 @@ void CAgent::MoveTowards(TVector2d t_position, double f_max_speed)
 
     double fSpeed = sqrt(m_tVelocity.x * m_tVelocity.x + m_tVelocity.y * m_tVelocity.y);
 
-    if (fSpeed > f_max_speed) 
+    if (fSpeed > f_max_speed)
     {
         double fModifier = fSpeed / f_max_speed;
         m_tVelocity.x /= fModifier;
         m_tVelocity.y /= fModifier;
     }
 
-    // TVector2d tNewPosition = { m_tPosition.x + m_tVelocity.x, 
+    // TVector2d tNewPosition = { m_tPosition.x + m_tVelocity.x,
     //                            m_tPosition.y + m_tVelocity.y };
-    
+
     // if (tNewPosition.x >= fArenaWidth / 2.0)
     //     tNewPosition.x -= fArenaWidth;
 
@@ -514,14 +516,14 @@ void CAgent::MoveTowards(TVector2d t_position, double f_max_speed)
     //     tNewPosition.x += fArenaHeight;
 
     // if (!CSimulator::GetInstance()->GetArena()->IsObstacle(&tNewPosition)) {
-    //     CSimulator::GetInstance()->GetArena()->MoveAgent(this, &tNewPosition);        
+    //     CSimulator::GetInstance()->GetArena()->MoveAgent(this, &tNewPosition);
     // }
 }
 
 /******************************************************************************/
 /******************************************************************************/
 
-void CAgent::SetColor(unsigned int un_color) 
+void CAgent::SetColor(unsigned int un_color)
 {
     m_unColor = un_color;
 }
@@ -531,7 +533,7 @@ void CAgent::SetColor(unsigned int un_color)
 
 void CAgent::MarkAgentsWithinRange(TAgentListList* ptlist_agent_list_list, double f_range, EAgentType e_type)
 {
-    CountAgentsInAgentListList(ptlist_agent_list_list, f_range, e_type);    
+    CountAgentsInAgentListList(ptlist_agent_list_list, f_range, e_type);
 }
 
 /******************************************************************************/
@@ -539,9 +541,9 @@ void CAgent::MarkAgentsWithinRange(TAgentListList* ptlist_agent_list_list, doubl
 
 unsigned int CAgent::CountAgents(double f_range, EAgentType e_type)
 {
-    TAgentListList tAgentListList; 
+    TAgentListList tAgentListList;
     CSimulator::GetInstance()->GetArena()->GetAgentsCloseTo(&tAgentListList, GetPosition(), f_range);
-    return CountAgentsInAgentListList(&tAgentListList, f_range, e_type);    
+    return CountAgentsInAgentListList(&tAgentListList, f_range, e_type);
 }
 
 /******************************************************************************/
@@ -549,19 +551,19 @@ unsigned int CAgent::CountAgents(double f_range, EAgentType e_type)
 
 CAgent* CAgent::GetClosestAgent(double f_range, EAgentType e_type)
 {
-    TAgentListList tAgentListList; 
+    TAgentListList tAgentListList;
     CSimulator::GetInstance()->GetArena()->GetAgentsCloseTo(&tAgentListList, GetPosition(), f_range);
 
     double fShortestDistanceSquared = f_range * f_range;
     CAgent* pcAgent  = NULL;
     for (TAgentListListIterator i = tAgentListList.begin(); i != tAgentListList.end(); i++)
-    {        
-        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++) 
+    {
+        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++)
         {
-            if ((*j) != this) 
+            if ((*j) != this)
             {
                 double fDistanceSqaured = GetSquaredDistanceBetweenPositions((*j)->GetPosition(), GetPosition());
-                if (fDistanceSqaured < fShortestDistanceSquared) 
+                if (fDistanceSqaured < fShortestDistanceSquared)
                 {
                     fShortestDistanceSquared = fDistanceSqaured;
                     pcAgent = (*j);
@@ -571,7 +573,7 @@ CAgent* CAgent::GetClosestAgent(double f_range, EAgentType e_type)
         }
     }
 
-    return pcAgent;  
+    return pcAgent;
 }
 
 /******************************************************************************/
@@ -579,13 +581,13 @@ CAgent* CAgent::GetClosestAgent(double f_range, EAgentType e_type)
 
 
 TVector2d CAgent::GetCenterOfMassOfSurroundingAgents(double f_range, EAgentType e_type)
-{   
+{
     double fArenaWidth;
     double fArenaHeight;
     CArena* pcArena = CSimulator::GetInstance()->GetArena();
     pcArena->GetSize(&fArenaWidth, &fArenaHeight);
 
-    TAgentListList tAgentListList; 
+    TAgentListList tAgentListList;
     CSimulator::GetInstance()->GetArena()->GetAgentsCloseTo(&tAgentListList, GetPosition(), f_range);
     MarkAgentsWithinRange(&tAgentListList, f_range, e_type);
     TVector2d tCenter = { 0.0, 0.0 };
@@ -594,10 +596,10 @@ TVector2d CAgent::GetCenterOfMassOfSurroundingAgents(double f_range, EAgentType 
     CAgent* pcAgentSelected  = NULL;
     unsigned int unCount     = 0;
     for (TAgentListListIterator i = tAgentListList.begin(); i != tAgentListList.end(); i++)
-    {        
-        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++) 
+    {
+        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++)
         {
-            if ((*j)->m_bTempWithInRange) 
+            if ((*j)->m_bTempWithInRange)
             {
                 TVector2d posAgent = { (*j)->GetPosition()->x, (*j)->GetPosition()->y} ;
 
@@ -628,11 +630,11 @@ TVector2d CAgent::GetCenterOfMassOfSurroundingAgents(double f_range, EAgentType 
         }
     }
 
-    if (unCount > 0) 
+    if (unCount > 0)
     {
         tCenter.x /= (double) unCount;
         tCenter.y /= (double) unCount;
-        
+
         tCenter.x += m_tPosition.x;
         tCenter.y += m_tPosition.y;
     }
@@ -645,8 +647,8 @@ TVector2d CAgent::GetCenterOfMassOfSurroundingAgents(double f_range, EAgentType 
 /******************************************************************************/
 
 TVector2d CAgent::GetAverageVelocityOfSurroundingAgents(double f_range, EAgentType e_type)
-{   
-    TAgentListList tAgentListList; 
+{
+    TAgentListList tAgentListList;
     CSimulator::GetInstance()->GetArena()->GetAgentsCloseTo(&tAgentListList, GetPosition(), f_range);
 
     MarkAgentsWithinRange(&tAgentListList, f_range, e_type);
@@ -656,10 +658,10 @@ TVector2d CAgent::GetAverageVelocityOfSurroundingAgents(double f_range, EAgentTy
     CAgent* pcAgentSelected  = NULL;
     unsigned int unCount     = 0;
     for (TAgentListListIterator i = tAgentListList.begin(); i != tAgentListList.end(); i++)
-    {        
-        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++) 
+    {
+        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++)
         {
-            if ((*j)->m_bTempWithInRange) 
+            if ((*j)->m_bTempWithInRange)
             {
                 tVelocity.x += (*j)->GetVelocity()->x;
                 tVelocity.y += (*j)->GetVelocity()->y;
@@ -668,7 +670,7 @@ TVector2d CAgent::GetAverageVelocityOfSurroundingAgents(double f_range, EAgentTy
         }
     }
 
-    if (unCount > 0) 
+    if (unCount > 0)
     {
         tVelocity.x /= (double) unCount;
         tVelocity.y /= (double) unCount;
@@ -683,7 +685,7 @@ TVector2d CAgent::GetAverageVelocityOfSurroundingAgents(double f_range, EAgentTy
 
 double CAgent::GetAverageDistanceToSurroundingAgents(double f_range, EAgentType e_type)
 {
-    TAgentListList tAgentListList; 
+    TAgentListList tAgentListList;
     CSimulator::GetInstance()->GetArena()->GetAgentsCloseTo(&tAgentListList, GetPosition(), f_range);
 
     MarkAgentsWithinRange(&tAgentListList, f_range, e_type);
@@ -693,12 +695,12 @@ double CAgent::GetAverageDistanceToSurroundingAgents(double f_range, EAgentType 
     CAgent* pcAgentSelected  = NULL;
     unsigned int unCount     = 0;
     for (TAgentListListIterator i = tAgentListList.begin(); i != tAgentListList.end(); i++)
-    {        
-        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++) 
+    {
+        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++)
         {
-            if ((*j)->m_bTempWithInRange) 
+            if ((*j)->m_bTempWithInRange)
             {
-                distance += GetDistanceBetweenPositions(&m_tPosition, (*j)->GetPosition()); 
+                distance += GetDistanceBetweenPositions(&m_tPosition, (*j)->GetPosition());
                 unCount++;
             }
         }
@@ -719,7 +721,7 @@ double CAgent::GetAverageDistanceToSurroundingAgents(double f_range, EAgentType 
 
 TVector2d CAgent::GetAverageAccelerationOfSurroundingAgents(double f_range, EAgentType e_type)
 {
-    TAgentListList tAgentListList; 
+    TAgentListList tAgentListList;
     CSimulator::GetInstance()->GetArena()->GetAgentsCloseTo(&tAgentListList, GetPosition(), f_range);
     MarkAgentsWithinRange(&tAgentListList, f_range, e_type);
     TVector2d tAcceleration = { 0.0, 0.0 };
@@ -728,10 +730,10 @@ TVector2d CAgent::GetAverageAccelerationOfSurroundingAgents(double f_range, EAge
     CAgent* pcAgentSelected  = NULL;
     unsigned int unCount     = 0;
     for (TAgentListListIterator i = tAgentListList.begin(); i != tAgentListList.end(); i++)
-    {        
-        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++) 
+    {
+        for (TAgentListIterator j = (*i)->begin(); j != (*i)->end(); j++)
         {
-            if ((*j)->m_bTempWithInRange) 
+            if ((*j)->m_bTempWithInRange)
             {
                 tAcceleration.x += (*j)->GetAcceleration()->x;
                 tAcceleration.y += (*j)->GetAcceleration()->y;
@@ -740,7 +742,7 @@ TVector2d CAgent::GetAverageAccelerationOfSurroundingAgents(double f_range, EAge
         }
     }
 
-    if (unCount > 0) 
+    if (unCount > 0)
     {
         tAcceleration.x /= (double) unCount;
         tAcceleration.y /= (double) unCount;
@@ -755,21 +757,21 @@ TVector2d CAgent::GetAverageAccelerationOfSurroundingAgents(double f_range, EAge
 bool CompareDistances (CAgent* a, CAgent* b) { return (a->m_fTempDistance < b->m_fTempDistance); }
 
 
-void CAgent::SortAllAgentsAccordingToDistance(TAgentVector* pt_result) 
+void CAgent::SortAllAgentsAccordingToDistance(TAgentVector* pt_result)
 {
     TAgentVector* ptAllAgents = CSimulator::GetInstance()->GetAllAgents();
     pt_result->resize(ptAllAgents->size());
     copy(ptAllAgents->begin(), ptAllAgents->end(), pt_result->begin());
-    
+
     for (TAgentVectorIterator i = pt_result->begin(); i != pt_result->end(); i++)
     {
         if ((*i) == this)
             (*i)->m_fTempDistance = 0.0;
-        else 
-            (*i)->m_fTempDistance = GetDistanceBetweenPositions(&m_tPosition, &((*i)->m_tPosition)); 
+        else
+            (*i)->m_fTempDistance = GetDistanceBetweenPositions(&m_tPosition, &((*i)->m_tPosition));
     }
 
-    sort(pt_result->begin(), pt_result->end(), CompareDistances);       
+    sort(pt_result->begin(), pt_result->end(), CompareDistances);
 }
 
 /******************************************************************************/
