@@ -554,19 +554,19 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
             bool dbgflag = false;
 
             tmp_robotagent->CheckNeighborsResponseToMyFV(&unToleraters, &unAttackers, &unNbrsInSensoryRange, dbgflag);
-            //printf("\nResponsestoAllAgents: Step: %d, Id: %d, FV: %d, tol: %d, att: %d, neighboursinsensoryrange: %d", un_step_number, tmp_robotagent->GetIdentification(), tmp_fv->GetValue(), unToleraters, unAttackers, unNbrsInSensoryRange);
-            //if statement is for console output so features line up and are easier to read (previously, for ID 10 and above data was one space right so harder to read)
+//printf("\nResponsestoAllAgents: Step: %d, Id: %d, FV: %d, tol: %d, att: %d, neighboursinsensoryrange: %d", un_step_number, tmp_robotagent->GetIdentification(), tmp_fv->GetValue(), unToleraters, unAttackers, unNbrsInSensoryRange);
+//if statement is for console output so features line up and are easier to read (previously, for ID 10 and above data was one space right so harder to read)
             if(tmp_robotagent->GetIdentification() < 10)
             {
-                printf("\nStep: %d, Id: 0%d, Features1-6: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, nbrsinrange: %d, att: %d, tol: %d", un_step_number, tmp_robotagent->GetIdentification(),
+                printf("\nStep: %d, Id: 0%d, Features1-7: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, %0.0f, nbrsinrange: %d, att: %d, tol: %d", un_step_number, tmp_robotagent->GetIdentification(),
                     tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
-                    unNbrsInSensoryRange, unToleraters, unAttackers);
+                    tmp_fv->GetFeatureValue(6), unNbrsInSensoryRange, unToleraters, unAttackers);
             }
             else
             {
-                printf("\nStep: %d, Id: %d, Features1-6: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, nbrsinrange: %d, att: %d, tol: %d", un_step_number, tmp_robotagent->GetIdentification(),
+                printf("\nStep: %d, Id: %d, Features1-7: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, %0.0f, nbrsinrange: %d, att: %d, tol: %d", un_step_number, tmp_robotagent->GetIdentification(),
                     tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
-                    unNbrsInSensoryRange, unToleraters, unAttackers);
+                    tmp_fv->GetFeatureValue(6), unNbrsInSensoryRange, unToleraters, unAttackers);
             }
             i++;
         }

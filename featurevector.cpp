@@ -4,9 +4,9 @@
 /******************************************************************************/
 /******************************************************************************/
 
-unsigned int CFeatureVector::NUMBER_OF_FEATURES        = 6;
+unsigned int CFeatureVector::NUMBER_OF_FEATURES        = 7;
 unsigned int CFeatureVector::NUMBER_OF_FEATURE_VECTORS = 0;
-double       CFeatureVector::FEATURE_RANGE             = 6.0;
+double       CFeatureVector::FEATURE_RANGE             = 7.0;
 //new feature depth variable - number of possible values each feature can have
 double       CFeatureVector::FEATURE_DEPTH             = 4.0;
 
@@ -17,10 +17,9 @@ double       CFeatureVector::FEATURE_DEPTH             = 4.0;
 CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 {
     m_unValue  = 0;
-//added * FEATURE_DEPTH to get feature vector size with new feature depths
     m_unLength = NUMBER_OF_FEATURES;
+    m_unCorrectResponse = 0;
 
-    //assert(NUMBER_OF_FEATURES == 4);
     NUMBER_OF_FEATURE_VECTORS = 1 << NUMBER_OF_FEATURES*(int)log2(FEATURE_DEPTH);
 
     m_pfFeatureValues         = new float[m_unLength];
@@ -38,16 +37,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
         m_pfFeatureValues[i]         = 0.0;
     }
 
- /* m_fVelocityThreshold            = 0.05  * (m_pcAgent->GetMaximumSpeed());
-    m_fAccelerationThreshold        = 0.05  * (m_pcAgent->GetMaximumSpeed());
-
-    m_tAngularVelocityThreshold     = 0.032  * (m_pcAgent->GetMaximumAngularVelocity());
-    m_tAngularAccelerationThreshold = 0.032  * (m_pcAgent->GetMaximumAngularVelocity());
-
-    m_fRelativeVelocityMagThreshold = 0.05 * (m_pcAgent->GetMaximumSpeed());
-    m_fRelativeVelocityDirThreshold = 0.05  * (m_pcAgent->GetMaximumAngularVelocity());
-*/
- //new code for features with more than one possible value. feature depth is number of bits, so 2^n possible values
+//Range of feature values split into bands - feature depth is number of bits, so 2^n possible values
     m_pfVelocityBands = new float[(int)FEATURE_DEPTH];
     m_pfAccelerationBands = new float[(int)FEATURE_DEPTH];
 
@@ -59,11 +49,11 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 
     m_pfSquaredDistBands = new float[(int)FEATURE_DEPTH];
 
+    m_pfCorrectResponseBands = new float[(int)FEATURE_DEPTH];
+
 
     for(int i = 0; i < FEATURE_DEPTH; i++)
     {
-//entire range of possible values split equally into FEATURE_DEPTH bands
-//could incorporate the 0.05 and 0.032 values used previously to avoid noise
         m_pfVelocityBands[i] = (i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumSpeed()));
         m_pfAccelerationBands[i] = i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumSpeed());
 
@@ -72,6 +62,8 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 
         m_pfRelativeVelocityMagBands[i] = i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumSpeed());
         m_pfRelativeVelocityDirBands[i] = i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumAngularVelocity());
+
+        m_pfCorrectResponseBands[i] = i * (1/FEATURE_DEPTH) * m_iEventSelectionTimeWindow;
     }
 
     // keeping track of neighbors in last m_iEventSelectionTimeWindow time-steps
@@ -95,9 +87,6 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
         m_pfSquaredDistBands[i] = i * (1/FEATURE_DEPTH) * ((m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow) *
                                                                 (m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow));
     }
-
-    //m_fSquaredDistThreshold = (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow)) *
-    //        (0.05 * (m_pcAgent->GetMaximumSpeed()*(double)m_iDistTravelledTimeWindow));
 
     m_pvecCoordAtTimeStep = new TVector2d[m_iDistTravelledTimeWindow];
 }
@@ -152,8 +141,6 @@ unsigned int CFeatureVector::SimulationStep()
     {
         m_unValue += (unsigned int)m_pfFeatureValues[i] * (unsigned int)pow(FEATURE_DEPTH,i); // << (FEATURE_DEPTH * i));
     }
-//    for (unsigned int i = 0; i < m_unLength; i++)
-//        m_unValue += (unsigned int)m_pfFeatureValues[i] * (1 << i);
 
 }
 
@@ -180,24 +167,11 @@ void CFeatureVector::ComputeFeatureValues()
     // 6 bit or more feature-vectors
     // Feature (from LS to MS bits in FV)
     // Sensors
-    //1st: set if bot has atleast one neighbor in range 0-3 in the majority of of past X time-steps
-    //2nd: set if bot has atleast one neighbor in range 3-6 in the majority of of past X time-steps
+    //1st: How long is there at least one neighbor in range 0-3 in past X time steps
+    //2nd: How long is there at least one neighbor in range 0-6 in past X time-steps
     if(CurrentStepNumber >= m_iEventSelectionTimeWindow)
     {
         // decision based on the last X time-steps
-
-/* Old feature 1 and 2 code
-
-     if(m_unSumTimeStepsNbrsRange0to3 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
-            m_pfFeatureValues[0] = 1.0;
-        else
-           m_pfFeatureValues[0] = 0.0;
-
-        if(m_unSumTimeStepsNbrsRange3to6 > (unsigned)(0.5*(double)m_iEventSelectionTimeWindow))
-            m_pfFeatureValues[1] = 1.0;
-        else
-            m_pfFeatureValues[1] = 0.0;
-*/
 
         bool feature0Set = false, feature1Set = false; //Flags to set to the last band if neccessary as the loop won't reach it
 
@@ -326,6 +300,79 @@ void CFeatureVector::ComputeFeatureValues()
         }
     }
 
+/////////////////////////////////FEATURE 7
+//The feature is supposed to test if a robot disperses correctly, ie turning away from the centre of mass of its surrounding agents
+
+    bool feature6set = false;
+    double heading = 0;
+
+//get agent velocity
+    TVector2d velocityVec;
+    velocityVec.x = m_pcAgent->GetVelocity()->x;
+    velocityVec.y = m_pcAgent->GetVelocity()->y;
+
+    heading = Vec2dOwnAngle(velocityVec);
+
+    double m_fAngleToCentreOfMass = m_pcAgent->GetVectorAngle(*m_pcAgent->GetPosition(),m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT));
+
+//Following commented code was using a heading based on an angle in radians
+    //set opposite direction to 180 degrees from the angle to Centre of mass (+Pi)
+    //   double m_fOppositeAngleToCOM = m_fAngleToCentreOfMass + M_PI;
+
+    //if angle is over 2*Pi, subtract 2*Pi
+    //if (m_fOppositeAngleToCOM >= 2 * M_PI)
+    //    m_fOppositeAngleToCOM -= 2 * M_PI;
+
+//Opposite angle here is just the negative of the angle to centre of mass
+double m_fOppositeAngleToCOM = -m_fAngleToCentreOfMass;
+
+    //tracking agent 0 for testing
+    if (m_pcAgent->GetIdentification() == 0)
+    {
+        printf("\nBot: 0; Heading: %f;\n", heading);
+        printf("AngletoCOM: %f;\n",m_fAngleToCentreOfMass);
+        printf("OppositeAngleToCOM: %f\n",m_fOppositeAngleToCOM);
+    }
+
+//comparison here should test if the robot turns 180 degrees away from the centre of mass of surrounding agents, with 5% tolerance (hence 0.95 and 1.05)
+    if (heading >= 0.95 * m_fOppositeAngleToCOM && heading <= 1.05 * m_fOppositeAngleToCOM)
+    {
+        m_piLastOccuranceEvent[6] = CurrentStepNumber;
+    }
+
+//if the robot has turned correctly, a counter is incremented, if not it is decremented (limits of 0 to m_iEventSelectionWindow)
+    if (m_piLastOccuranceEvent[6] == CurrentStepNumber)
+    {
+        if (m_unCorrectResponse < m_iEventSelectionTimeWindow)
+            m_unCorrectResponse++;
+    }
+    else
+    {
+        if(m_unCorrectResponse > 0)
+            m_unCorrectResponse--;
+    }
+
+//Tracking count variable to see if the feature is working
+    if(m_pcAgent->GetIdentification() == 0)
+        printf("CorrectResponseCount: %d\n",m_unCorrectResponse);
+
+//Set feature band based on count variable value
+    for(int i = 0; i < FEATURE_DEPTH-1; i++)
+    {
+        if (m_unCorrectResponse >= m_pfCorrectResponseBands[i] && m_unCorrectResponse < m_pfCorrectResponseBands[i+1])
+        {
+            m_pfFeatureValues[6] = i;
+            feature6set = true;
+        }
+    }
+
+    if(feature6set == false)
+    {
+        m_pfFeatureValues[6] = FEATURE_DEPTH-1;
+    }
+
+///////////////////////////////
+
 
     // Motors
     //5th: distance travelled by bot in past Y time-steps. Higher than 5% of max-possible distance travelled is accepted as feature=1.
@@ -382,6 +429,12 @@ void CFeatureVector::ComputeFeatureValues()
 
     if(feature5Set == false)
         m_pfFeatureValues[5] = FEATURE_DEPTH-1;
+
+/**NEW FEATURE - Tests if the robot disperses correctly, often, as it should**/
+  //  m_pcAgent->GetVelocity();
+ //   if (m_pcAgent->GetVectorAngle(m_pcAgent->GetVelocity(),m_pcAgent->GetCentreOfMassOfSurroundingAgents()) >= 175 && <= 185)
+// m_pcAgent->GetCenterOfMassOfSurroundingAgents();
+
 
 #ifdef DEBUGFEATUREVECTORFLAG
 if(FDMODELTYPE != LINEQ) // lineq - low expected run time; can come back and log more details if needed
