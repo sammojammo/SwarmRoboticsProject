@@ -26,7 +26,6 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_piLastOccuranceEvent    = new int[m_unLength];
     m_piLastOccuranceNegEvent = new int[m_unLength];
 
-
     m_iEventSelectionTimeWindow = MODELSTARTTIME; //1500;
 
     for(unsigned int i = 0; i < NUMBER_OF_FEATURES; i++)
@@ -37,7 +36,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
         m_pfFeatureValues[i]         = 0.0;
     }
 
-//Range of feature values split into bands - feature depth is number of bits, so 2^n possible values
+//Range of feature values split into bands - feature depth is number of possible values, so must be
     m_pfVelocityBands = new float[(int)FEATURE_DEPTH];
     m_pfAccelerationBands = new float[(int)FEATURE_DEPTH];
 
@@ -50,7 +49,6 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_pfSquaredDistBands = new float[(int)FEATURE_DEPTH];
 
     m_pfCorrectResponseBands = new float[(int)FEATURE_DEPTH];
-
 
     for(int i = 0; i < FEATURE_DEPTH; i++)
     {
@@ -327,11 +325,10 @@ void CFeatureVector::ComputeFeatureValues()
 double m_fOppositeAngleToCOM = -m_fAngleToCentreOfMass;
 
     //tracking agent 0 for testing
-    if (m_pcAgent->GetIdentification() == 0)
+    if (m_pcAgent->GetIdentification() == 0 || m_pcAgent->GetIdentification() == 15)
     {
-        printf("\nBot: 0; Heading: %f;\n", heading);
-        printf("AngletoCOM: %f;\n",m_fAngleToCentreOfMass);
-        printf("OppositeAngleToCOM: %f\n",m_fOppositeAngleToCOM);
+        printf("\n\nBot: %d; Heading: %f;\n", m_pcAgent->GetIdentification(), heading);
+        printf("AngletoCOM: %f; OppositeAngleToCOM: %f\n",m_fAngleToCentreOfMass, m_fOppositeAngleToCOM);
     }
 
 //comparison here should test if the robot turns 180 degrees away from the centre of mass of surrounding agents, with 5% tolerance (hence 0.95 and 1.05)
