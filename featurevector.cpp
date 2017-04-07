@@ -301,7 +301,9 @@ void CFeatureVector::ComputeFeatureValues()
 
 /////////////////////////////////FEATURE 7
 //The feature is supposed to test if a robot disperses correctly, ie turning away from the centre of mass of its surrounding agents
-
+//if here to test if the DISPERSION behaviour has taken control, which is the case where the robot must move away from the centre of mass of surrounding agents
+if(m_pcAgent->GetBehavior() == DISPERSION)
+{
     bool feature6set = false;
     double heading = 0;
 
@@ -370,7 +372,7 @@ void CFeatureVector::ComputeFeatureValues()
     {
         m_pfFeatureValues[6] = FEATURE_DEPTH-1;
     }
-
+}
 ///////////////////////////////
 
 
