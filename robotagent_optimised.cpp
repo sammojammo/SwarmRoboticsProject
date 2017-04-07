@@ -17,6 +17,8 @@ CRobotAgentOptimised::CRobotAgentOptimised(const char* pch_name, unsigned int un
         thresholdinAgent = new ThresholdinRobotAgentOptimised(this, pc_model_arguments);
     else { printf("\nUnknown model type"); exit(-1);}
 
+    CFeatureVector::FEATURE_DEPTH = pc_arguments->GetArgumentAsDoubleOr("featuredepth", 4.0);
+
     m_pcFeatureVector   = new CFeatureVector(this);
 
     m_fWeight = 0.0;
@@ -34,7 +36,7 @@ CRobotAgentOptimised::CRobotAgentOptimised(const char* pch_name, unsigned int un
     m_uSelectedNumNearestNbrs     = pc_arguments->GetArgumentAsIntOr("selectnumnearestnbrs", 10);
     m_uNumVotingNbrs              = pc_arguments->GetArgumentAsIntOr("numvotingnbrs", 10);
 
-    CFeatureVector::FEATURE_DEPTH = pc_arguments->GetArgumentAsDoubleOr("featuredepth", 4.0);
+
 
     if(pc_arguments->GetArgumentIsDefined("help") && !bHelpDisplayed)
         printf("fvsenserange=#.#              Range at which other agents' FVs are sensed [%f]\n"
