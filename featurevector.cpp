@@ -27,6 +27,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_piLastOccuranceNegEvent = new int[m_unLength];
 
     m_iEventSelectionTimeWindow = MODELSTARTTIME; //1500;
+    m_iCorrectResponseTimeWindow = 150;
 
     for(unsigned int i = 0; i < NUMBER_OF_FEATURES; i++)
     {
@@ -310,21 +311,23 @@ void CFeatureVector::ComputeFeatureValues()
     velocityVec.y = m_pcAgent->GetVelocity()->y;
 
     heading = Vec2dOwnAngle(velocityVec);
+    if (heading < 0)
+        heading = -heading;
 
     double m_fAngleToCentreOfMass = m_pcAgent->GetVectorAngle(*m_pcAgent->GetPosition(),m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT));
 
 //Following commented code was using a heading based on an angle in radians
     //set opposite direction to 180 degrees from the angle to Centre of mass (+Pi)
-    //   double m_fOppositeAngleToCOM = m_fAngleToCentreOfMass + M_PI;
+       double m_fOppositeAngleToCOM = m_fAngleToCentreOfMass + M_PI;
 
     //if angle is over 2*Pi, subtract 2*Pi
-    //if (m_fOppositeAngleToCOM >= 2 * M_PI)
-    //    m_fOppositeAngleToCOM -= 2 * M_PI;
+    if (m_fOppositeAngleToCOM >= 2 * M_PI)
+        m_fOppositeAngleToCOM -= 2 * M_PI;
 
 //Opposite angle here is just the negative of the angle to centre of mass
-double m_fOppositeAngleToCOM = -m_fAngleToCentreOfMass;
+//double m_fOppositeAngleToCOM = -m_fAngleToCentreOfMass;
 
-    //tracking agent 0 for testing
+    //tracking agent 0 (normal) and agent 15 (faulty) for testing
     if (m_pcAgent->GetIdentification() == 0 || m_pcAgent->GetIdentification() == 15)
     {
         printf("\n\nBot: %d; Heading: %f;\n", m_pcAgent->GetIdentification(), heading);
@@ -340,7 +343,7 @@ double m_fOppositeAngleToCOM = -m_fAngleToCentreOfMass;
 //if the robot has turned correctly, a counter is incremented, if not it is decremented (limits of 0 to m_iEventSelectionWindow)
     if (m_piLastOccuranceEvent[6] == CurrentStepNumber)
     {
-        if (m_unCorrectResponse < m_iEventSelectionTimeWindow)
+        if (m_unCorrectResponse < m_iCorrectResponseTimeWindow)
             m_unCorrectResponse++;
     }
     else

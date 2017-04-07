@@ -58,6 +58,7 @@ protected:
     int*           m_piLastOccuranceNegEvent;
 
     int          m_iEventSelectionTimeWindow;
+    int          m_iCorrectResponseTimeWindow;
 
 /*    double       m_fVelocityThreshold;
     double       m_fAccelerationThreshold;
