@@ -31,7 +31,7 @@ public:
     static unsigned int NUMBER_OF_FEATURES;
     static unsigned int NUMBER_OF_FEATURE_VECTORS;
     static double       FEATURE_RANGE;
-    static double       FEATURE_DEPTH;                      /***bit depth of features**/
+    static double       FEATURE_DEPTH;
 
     virtual unsigned int GetValue() const;
     virtual unsigned int GetLength() const;
@@ -61,18 +61,11 @@ protected:
     int          m_iCorrectResponseTimeWindow;
 
     double          m_fRobotHeading;
+    double          m_fPreviousRobotHeading;
 
-/*    double       m_fVelocityThreshold;
-    double       m_fAccelerationThreshold;
-
-    double       m_tAngularVelocityThreshold;
-
-
-    double       m_fRelativeVelocityMagThreshold;
-    double       m_fRelativeVelocityDirThreshold;
-*/
 
     double       m_tAngularAccelerationThreshold;
+
  /*************bands replacing thresholds*************/
     float* m_pfVelocityBands;
     float* m_pfAccelerationBands;

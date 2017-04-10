@@ -78,6 +78,8 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_punTurnedWithNbrsAtTimeStep = new unsigned int[m_iEventSelectionTimeWindow];
     m_punTurnedWithoutNbrsAtTimeStep = new unsigned int[m_iEventSelectionTimeWindow];
 
+    m_fRobotHeading = 0.0;
+    m_fPreviousRobotHeading = 0.0;
 
     // keeping track of distance travelled by bot in last 100 time-steps
     m_iDistTravelledTimeWindow = 100;/******/
@@ -190,7 +192,10 @@ void CFeatureVector::ComputeFeatureValues()
                 feature0Set = true;
                 break;
             }
+        }
 
+        for(int i = 0; i < FEATURE_DEPTH-1; i++)
+        {
             if ( (m_unSumTimeStepsNbrsRange3to6 >= (i * (1/(FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow))
                 && (m_unSumTimeStepsNbrsRange3to6 < ((i+1) * (1/(FEATURE_DEPTH)) * (double)m_iEventSelectionTimeWindow)) )
             {
@@ -198,6 +203,7 @@ void CFeatureVector::ComputeFeatureValues()
                 feature1Set = true;
                 break;
             }
+
         }
 
         if (feature0Set == false)
@@ -246,12 +252,10 @@ void CFeatureVector::ComputeFeatureValues()
     {
         m_unSensoryMotorNearCount++;
         m_punTurnedWithNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 1;
-
     }
     else
-    {
         m_punTurnedWithNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 0;
-    }
+
 
     if(dist_nbrsagents == 6.0 &&
         (angle_acceleration > m_tAngularAccelerationThreshold || angle_acceleration < -m_tAngularAccelerationThreshold))
@@ -259,12 +263,10 @@ void CFeatureVector::ComputeFeatureValues()
         m_unSensoryMotorFarCount++;
         m_punTurnedWithoutNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 1;
     }
-    else if(dist_nbrsagents == 6.0 &&
-        ( (angle_acceleration <= m_tAngularAccelerationThreshold) || (angle_acceleration >= -m_tAngularAccelerationThreshold) ) )
-    {
+    else
         m_punTurnedWithoutNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 0;
-    }
 
+    //Increment counter - counts to limit X then resets to 0
     m_unTurnCurrQueueIndex = (m_unTurnCurrQueueIndex + 1) % m_iEventSelectionTimeWindow;
 
     //set feature band
@@ -362,14 +364,15 @@ void CFeatureVector::ComputeFeatureValues()
                                      + ((m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).y - m_pcAgent->GetPosition()->y)
                                         * (m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).y - m_pcAgent->GetPosition()->y)) );
 
+/*        //Centre of mass wrt robot
+        TVector2d COMwrtRobot;
+        COMwrtRobot.x = m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).x - m_pcAgent->GetPosition()->x;
+        COMwrtRobot.y = m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).y - m_pcAgent->GetPosition()->y;
 
-//printf("\nDisttoCOM: %f, AngVel: %f, bot: %d;",distToCentreOfMass,m_pcAgent->GetAngularVelocity(),m_pcAgent->GetIdentification());
-
-    //if centre of mass of surrounding agents is within range, and heading has changed (angular velocity > threshold)
-    if(distToCentreOfMass < 2*FEATURE_RANGE && m_pcAgent->GetAngularVelocity() > 0.01){
-
-        bool feature6set = false;
-
+        //opposite direction to centre of mass wrt robot
+        COMwrtRobot.x = -COMwrtRobot.x + m_pcAgent->GetPosition()->x;
+        COMwrtRobot.y = -COMwrtRobot.y + m_pcAgent->GetPosition()->y;
+*/
         //Get agent velocity
         TVector2d velocityVec;
         velocityVec.x = m_pcAgent->GetVelocity()->x;
@@ -377,33 +380,35 @@ void CFeatureVector::ComputeFeatureValues()
 
         //Get robot heading and normalise
         m_fRobotHeading = Vec2dOwnAngle(velocityVec);
-        if (m_fRobotHeading < 0)
-            m_fRobotHeading += 2 * M_PI;
-        else if(m_fRobotHeading >= 2*M_PI)
-            m_fRobotHeading -= 2*M_PI;
+        m_fRobotHeading = NormalizeAngle(m_fRobotHeading);
 
+    //print marker for each step - for debugging in console
+    if(m_pcAgent->GetIdentification() == 0)
+        printf("\n===========================Step: %d", CurrentStepNumber);
+
+    printf("\nBot: %d, DisttoCOM: %f, AngVel: %f, Heading: %f",m_pcAgent->GetIdentification(),distToCentreOfMass,m_pcAgent->GetAngularVelocity(),m_fRobotHeading);
+
+    //if centre of mass of surrounding agents is within range, and heading has changed
+    if(distToCentreOfMass <= (FEATURE_RANGE/2.0) && ((m_fRobotHeading <= 0.95 * m_fPreviousRobotHeading) || (m_fRobotHeading >= 1.05 * m_fPreviousRobotHeading) ))//m_pcAgent->GetAngularVelocity() > 1.0)
+    {
+
+        bool feature6set = false;
 
         //Get angle to centre of mass and normalise
-        double m_fAngleToCentreOfMass = m_pcAgent->GetVectorAngle(*m_pcAgent->GetPosition(),m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT));
+        double m_fAngleToCentreOfMass = m_pcAgent->GetVectorAngle(m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT),*m_pcAgent->GetPosition());
+        m_fAngleToCentreOfMass = NormalizeAngle(m_fAngleToCentreOfMass);
 
-        if(m_fAngleToCentreOfMass < 0)
-            m_fAngleToCentreOfMass += 2 * M_PI;
-        else if(m_fAngleToCentreOfMass >= 2 * M_PI)
-            m_fAngleToCentreOfMass -= 2 * M_PI;
-
-
-        //set opposite direction to 180 degrees from the angle to Centre of mass (+Pi)
+    //set opposite direction to 180 degrees from the angle to Centre of mass (+Pi)
         double m_fOppositeAngleToCOM = m_fAngleToCentreOfMass + M_PI;
-        if (m_fOppositeAngleToCOM >= 2 * M_PI)
-            m_fOppositeAngleToCOM -= 2 * M_PI;
+        //double m_fOppositeAngleToCOM = Vec2dOwnAngle(COMwrtRobot);
+        m_fOppositeAngleToCOM = NormalizeAngle(m_fOppositeAngleToCOM);
 
-
-        printf("\n\nBot: %d; Heading: %f;\n", m_pcAgent->GetIdentification(), m_fRobotHeading);
+        printf("\nTesting Bot: %d; Heading: %f;\n", m_pcAgent->GetIdentification(), m_fRobotHeading);
         printf("AngletoCOM: %f; OppositeAngleToCOM: %f\n",m_fAngleToCentreOfMass, m_fOppositeAngleToCOM);
-
 
         //Test if the robot turns 180 degrees away from the centre of mass of surrounding agents, with 5% tolerance (hence 0.95 and 1.05)
         //if the robot has turned correctly, a counter is incremented, if not it is decremented (limits of 0 to m_iCorrectResponseTimeWindow)
+
         if (m_fRobotHeading >= 0.95 * m_fOppositeAngleToCOM && m_fRobotHeading <= 1.05 * m_fOppositeAngleToCOM)
         {
              if (m_unCorrectResponse < m_iCorrectResponseTimeWindow)
@@ -416,8 +421,7 @@ void CFeatureVector::ComputeFeatureValues()
         }
 
         //Tracking count variable to see if the feature is working
- //       if(m_pcAgent->GetIdentification() == 0 || m_pcAgent->GetIdentification() == 15)
-            printf("CorrectResponseCount: %d\n",m_unCorrectResponse);
+        printf("CorrectResponseCount: %d\n",m_unCorrectResponse);
 
         //Set feature band based on count variable value
         for(int i = 0; i < FEATURE_DEPTH-1; i++)
@@ -435,6 +439,7 @@ void CFeatureVector::ComputeFeatureValues()
         }
 
     }
+    m_fPreviousRobotHeading = m_fRobotHeading;
 
 
 #ifdef DEBUGFEATUREVECTORFLAG
