@@ -60,25 +60,24 @@ protected:
     int          m_iEventSelectionTimeWindow;
     int          m_iCorrectResponseTimeWindow;
 
+    double          m_fRobotHeading;
+
 /*    double       m_fVelocityThreshold;
     double       m_fAccelerationThreshold;
 
     double       m_tAngularVelocityThreshold;
-    double       m_tAngularAccelerationThreshold;
+
 
     double       m_fRelativeVelocityMagThreshold;
     double       m_fRelativeVelocityDirThreshold;
 */
 
+    double       m_tAngularAccelerationThreshold;
  /*************bands replacing thresholds*************/
     float* m_pfVelocityBands;
     float* m_pfAccelerationBands;
 
-    float* m_pfAngularVelocityBands;
-    float* m_pfAngularAccelerationBands;
-
-    float* m_pfRelativeVelocityMagBands;
-    float* m_pfRelativeVelocityDirBands;
+    float* m_pfSensoryMotorBands;
 
     float* m_pfSquaredDistBands;
 
@@ -98,6 +97,17 @@ protected:
     unsigned int* m_punNbrsRange3to6AtTimeStep;
 
 
+    //Sensory motor vars
+    unsigned int  m_unTurnCurrQueueIndex;
+
+    unsigned int  m_unSensoryMotorFarCount;
+    unsigned int  m_unSensoryMotorNearCount;
+
+    unsigned int* m_punTurnedWithNbrsAtTimeStep;
+    unsigned int* m_punTurnedWithoutNbrsAtTimeStep;
+
+
+
 
     // keeping track of distance travelled by bot in last 100 time-steps
     int              m_iDistTravelledTimeWindow;
@@ -105,7 +115,7 @@ protected:
     unsigned int     m_unCoordCurrQueueIndex;
 
     double           m_fSquaredDistTravelled;
-//    double           m_fSquaredDistThreshold;
+
 
     TVector2d*       m_pvecCoordAtTimeStep;
 

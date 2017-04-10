@@ -28,6 +28,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 
     m_iEventSelectionTimeWindow = MODELSTARTTIME; //1500;
     m_iCorrectResponseTimeWindow = 150;
+    m_tAngularAccelerationThreshold = 0.032 * m_pcAgent->GetMaximumAngularVelocity();
 
     for(unsigned int i = 0; i < NUMBER_OF_FEATURES; i++)
     {
@@ -41,29 +42,22 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_pfVelocityBands = new float[(int)FEATURE_DEPTH];
     m_pfAccelerationBands = new float[(int)FEATURE_DEPTH];
 
-    m_pfAngularVelocityBands = new float[(int)FEATURE_DEPTH];
-    m_pfAngularAccelerationBands = new float[(int)FEATURE_DEPTH];
-
-    m_pfRelativeVelocityMagBands = new float[(int)FEATURE_DEPTH];
-    m_pfRelativeVelocityDirBands = new float[(int)FEATURE_DEPTH];
-
     m_pfSquaredDistBands = new float[(int)FEATURE_DEPTH];
 
     m_pfCorrectResponseBands = new float[(int)FEATURE_DEPTH];
 
+    m_pfSensoryMotorBands = new float[(int)FEATURE_DEPTH];
+
     for(int i = 0; i < FEATURE_DEPTH; i++)
     {
-        m_pfVelocityBands[i] = (i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumSpeed()));
-        m_pfAccelerationBands[i] = i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumSpeed());
+        m_pfVelocityBands[i] = (i * (1.0/FEATURE_DEPTH) * (m_pcAgent->GetMaximumSpeed()));
+        m_pfAccelerationBands[i] = i * (1.0/FEATURE_DEPTH) * (m_pcAgent->GetMaximumSpeed());
 
-        m_pfAngularVelocityBands[i] = i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumAngularVelocity());
-        m_pfAngularAccelerationBands[i] = i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumAngularVelocity());
+        m_pfCorrectResponseBands[i] = i * (1.0/FEATURE_DEPTH) * m_iCorrectResponseTimeWindow;
 
-        m_pfRelativeVelocityMagBands[i] = i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumSpeed());
-        m_pfRelativeVelocityDirBands[i] = i * (1/FEATURE_DEPTH) * (m_pcAgent->GetMaximumAngularVelocity());
-
-        m_pfCorrectResponseBands[i] = i * (1/FEATURE_DEPTH) * m_iEventSelectionTimeWindow;
+        m_pfSensoryMotorBands[i] = i * (1.0/FEATURE_DEPTH) * m_iEventSelectionTimeWindow;
     }
+
 
     // keeping track of neighbors in last m_iEventSelectionTimeWindow time-steps
     m_unNbrsCurrQueueIndex = 0;
@@ -75,6 +69,16 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_punNbrsRange3to6AtTimeStep = new unsigned int[m_iEventSelectionTimeWindow];
 
 
+    //Sensory motor variables F2,F3
+    m_unTurnCurrQueueIndex = 0;
+
+    m_unSensoryMotorNearCount = 0;
+    m_unSensoryMotorFarCount = 0;
+
+    m_punTurnedWithNbrsAtTimeStep = new unsigned int[m_iEventSelectionTimeWindow];
+    m_punTurnedWithoutNbrsAtTimeStep = new unsigned int[m_iEventSelectionTimeWindow];
+
+
     // keeping track of distance travelled by bot in last 100 time-steps
     m_iDistTravelledTimeWindow = 100;/******/
     m_unCoordCurrQueueIndex    = 0;
@@ -83,7 +87,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
 
     for(int i = 0; i < FEATURE_DEPTH; i++)
     {
-        m_pfSquaredDistBands[i] = i * (1/FEATURE_DEPTH) * ((m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow) *
+        m_pfSquaredDistBands[i] = i * (1.0/FEATURE_DEPTH) * ((m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow) *
                                                                 (m_pcAgent->GetMaximumSpeed() * (double)m_iDistTravelledTimeWindow));
     }
 
@@ -103,6 +107,9 @@ CFeatureVector::~CFeatureVector()
     delete m_punNbrsRange0to3AtTimeStep;
     delete m_punNbrsRange3to6AtTimeStep;
 
+    delete m_punTurnedWithNbrsAtTimeStep;
+    delete m_punTurnedWithoutNbrsAtTimeStep;
+
     delete m_pvecCoordAtTimeStep;
 }
 
@@ -114,7 +121,7 @@ unsigned int CFeatureVector::GetValue() const
     return m_unValue;
 }
 /******************************************************************************/
-/*new function to return value of specific feature, specified by parameter featureNum*/
+/*function to return value of specific feature, specified by parameter featureNum*/
 float CFeatureVector::GetFeatureValue(int featureNum) const
 {
     return m_pfFeatureValues[featureNum];
@@ -232,149 +239,67 @@ void CFeatureVector::ComputeFeatureValues()
     // Set if the occurance of the following event, atleast once in time window X
     // 3rd: distance to nbrs 0-6 && change in angular acceleration
     // 4th: no neighbors detected  && change in angular acceleration
-/**could change to larger time window**/
-/*  old feature 3 and 4 code
-
-    if(dist_nbrsagents < 6.0 &&
-            (angle_acceleration > m_tAngularAccelerationThreshold ||
-             angle_acceleration < -m_tAngularAccelerationThreshold))
-    {
-        m_piLastOccuranceEvent[2] = CurrentStepNumber;
-    }
-
-    if(dist_nbrsagents == 6.0 &&
-            (angle_acceleration > m_tAngularAccelerationThreshold ||
-             angle_acceleration < -m_tAngularAccelerationThreshold))
-    {
-        m_piLastOccuranceEvent[3] = CurrentStepNumber;
-    }
-
-    for(unsigned int featureindex = 2; featureindex <=3; featureindex++)
-    {
-        if ((CurrentStepNumber - m_piLastOccuranceEvent[featureindex]) <= m_iEventSelectionTimeWindow)
-        {
-            m_pfFeatureValues[featureindex] = 1.0;
-        }
-        else
-        {
-            m_pfFeatureValues[featureindex] = 0.0;
-        }
-    }
-*/
-
-    int accelerationBand = 0;
     bool feature2Set = false, feature3Set = false;
 
-    for(int i = 0; i < FEATURE_DEPTH-1; i++)
+    if(dist_nbrsagents < 6.0 &&
+        (angle_acceleration > m_tAngularAccelerationThreshold || angle_acceleration < -m_tAngularAccelerationThreshold))
     {
-        if(dist_nbrsagents < 6.0 &&
-          ( (angle_acceleration >= m_pfAngularAccelerationBands[i] && angle_acceleration < m_pfAngularAccelerationBands[i+1]) ||
-            (angle_acceleration <= -m_pfAngularAccelerationBands[i] && angle_acceleration > -m_pfAngularAccelerationBands[i+1]) ))
-        {
-            m_piLastOccuranceEvent[2] = CurrentStepNumber;
-            accelerationBand = i;
-            feature2Set = true;
-            break;
-        }
+        m_unSensoryMotorNearCount++;
+        m_punTurnedWithNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 1;
 
-        if(dist_nbrsagents == 6.0 &&
-          ( (angle_acceleration >= m_pfAngularAccelerationBands[i] && angle_acceleration < m_pfAngularAccelerationBands[i+1]) ||
-            (angle_acceleration <= -m_pfAngularAccelerationBands[i] && angle_acceleration > -m_pfAngularAccelerationBands[i+1]) ))
-        {
-            m_piLastOccuranceEvent[3] = CurrentStepNumber;
-            accelerationBand = i;
-            feature3Set = true;
-            break;
-        }
-    }
-
-    if(feature2Set == false && feature3Set == false)
-        accelerationBand = FEATURE_DEPTH-1;
-
-    for(unsigned int featureindex = 2; featureindex <= 3; featureindex++)
-    {
-        if ((CurrentStepNumber - m_piLastOccuranceEvent[featureindex]) <= m_iEventSelectionTimeWindow)
-        {
-            m_pfFeatureValues[featureindex] = accelerationBand;
-        }
-    }
-
-/////////////////////////////////FEATURE 7
-//The feature is supposed to test if a robot disperses correctly, ie turning away from the centre of mass of its surrounding agents
-//if here to test if the DISPERSION behaviour has taken control, which is the case where the robot must move away from the centre of mass of surrounding agents
-if(m_pcAgent->GetBehavior() == DISPERSION)
-{
-    bool feature6set = false;
-    double heading = 0;
-
-//get agent velocity
-    TVector2d velocityVec;
-    velocityVec.x = m_pcAgent->GetVelocity()->x;
-    velocityVec.y = m_pcAgent->GetVelocity()->y;
-
-    heading = Vec2dOwnAngle(velocityVec);
-    if (heading < 0)
-        heading = -heading;
-
-    double m_fAngleToCentreOfMass = m_pcAgent->GetVectorAngle(*m_pcAgent->GetPosition(),m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT));
-
-//Following commented code was using a heading based on an angle in radians
-    //set opposite direction to 180 degrees from the angle to Centre of mass (+Pi)
-       double m_fOppositeAngleToCOM = m_fAngleToCentreOfMass + M_PI;
-
-    //if angle is over 2*Pi, subtract 2*Pi
-    if (m_fOppositeAngleToCOM >= 2 * M_PI)
-        m_fOppositeAngleToCOM -= 2 * M_PI;
-
-//Opposite angle here is just the negative of the angle to centre of mass
-//double m_fOppositeAngleToCOM = -m_fAngleToCentreOfMass;
-
-    //tracking agent 0 (normal) and agent 15 (faulty) for testing
-    if (m_pcAgent->GetIdentification() == 0 || m_pcAgent->GetIdentification() == 15)
-    {
-        printf("\n\nBot: %d; Heading: %f;\n", m_pcAgent->GetIdentification(), heading);
-        printf("AngletoCOM: %f; OppositeAngleToCOM: %f\n",m_fAngleToCentreOfMass, m_fOppositeAngleToCOM);
-    }
-
-//comparison here should test if the robot turns 180 degrees away from the centre of mass of surrounding agents, with 5% tolerance (hence 0.95 and 1.05)
-    if (heading >= 0.95 * m_fOppositeAngleToCOM && heading <= 1.05 * m_fOppositeAngleToCOM)
-    {
-        m_piLastOccuranceEvent[6] = CurrentStepNumber;
-    }
-
-//if the robot has turned correctly, a counter is incremented, if not it is decremented (limits of 0 to m_iEventSelectionWindow)
-    if (m_piLastOccuranceEvent[6] == CurrentStepNumber)
-    {
-        if (m_unCorrectResponse < m_iCorrectResponseTimeWindow)
-            m_unCorrectResponse++;
     }
     else
     {
-        if(m_unCorrectResponse > 0)
-            m_unCorrectResponse--;
+        m_punTurnedWithNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 0;
     }
 
-//Tracking count variable to see if the feature is working
-    if(m_pcAgent->GetIdentification() == 0)
-        printf("CorrectResponseCount: %d\n",m_unCorrectResponse);
-
-//Set feature band based on count variable value
-    for(int i = 0; i < FEATURE_DEPTH-1; i++)
+    if(dist_nbrsagents == 6.0 &&
+        (angle_acceleration > m_tAngularAccelerationThreshold || angle_acceleration < -m_tAngularAccelerationThreshold))
     {
-        if (m_unCorrectResponse >= m_pfCorrectResponseBands[i] && m_unCorrectResponse < m_pfCorrectResponseBands[i+1])
+        m_unSensoryMotorFarCount++;
+        m_punTurnedWithoutNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 1;
+    }
+    else if(dist_nbrsagents == 6.0 &&
+        ( (angle_acceleration <= m_tAngularAccelerationThreshold) || (angle_acceleration >= -m_tAngularAccelerationThreshold) ) )
+    {
+        m_punTurnedWithoutNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 0;
+    }
+
+    m_unTurnCurrQueueIndex = (m_unTurnCurrQueueIndex + 1) % m_iEventSelectionTimeWindow;
+
+    //set feature band
+    if(CurrentStepNumber >= m_iEventSelectionTimeWindow)
+    {
+        for(int i = 0; i < FEATURE_DEPTH-1; i++)
         {
-            m_pfFeatureValues[6] = i;
-            feature6set = true;
+            if( (m_unSensoryMotorNearCount >= m_pfSensoryMotorBands[i]) && (m_unSensoryMotorNearCount < m_pfSensoryMotorBands[i+1]))
+            {
+                m_pfFeatureValues[2] = i;
+                feature2Set = true;
+                break;
+            }
         }
-    }
 
-    if(feature6set == false)
-    {
-        m_pfFeatureValues[6] = FEATURE_DEPTH-1;
-    }
-}
-///////////////////////////////
+        for(int i = 0; i < FEATURE_DEPTH-1; i++)
+        {
+            if( (m_unSensoryMotorFarCount >= m_pfSensoryMotorBands[i]) && (m_unSensoryMotorFarCount < m_pfSensoryMotorBands[i+1]))
+            {
+                m_pfFeatureValues[3] = i;
+                feature3Set = true;
+                break;
+            }
+        }
 
+        if(feature2Set == false)
+            m_pfFeatureValues[2] = FEATURE_DEPTH-1;
+
+        if(feature3Set == false)
+            m_pfFeatureValues[3] = FEATURE_DEPTH-1;
+
+        m_unSensoryMotorNearCount -= m_punTurnedWithNbrsAtTimeStep[m_unTurnCurrQueueIndex];
+        m_unSensoryMotorFarCount -= m_punTurnedWithoutNbrsAtTimeStep[m_unTurnCurrQueueIndex];
+
+    }
 
     // Motors
     //5th: distance travelled by bot in past Y time-steps. Higher than 5% of max-possible distance travelled is accepted as feature=1.
@@ -383,17 +308,11 @@ if(m_pcAgent->GetBehavior() == DISPERSION)
     if(CurrentStepNumber >= m_iDistTravelledTimeWindow)
     {
         // distance travelled in last 100 time-steps
-        m_fSquaredDistTravelled =
-                GetSquaredDistanceBetweenPositions(&vecAgentPos,
-                                                   &(m_pvecCoordAtTimeStep[m_unCoordCurrQueueIndex]));
+        m_fSquaredDistTravelled = GetSquaredDistanceBetweenPositions(&vecAgentPos,
+                                                        &(m_pvecCoordAtTimeStep[m_unCoordCurrQueueIndex]));
 
 
         // decision based on distance travelled in the last 100 time-steps
-/*       if(m_fSquaredDistTravelled >= m_fSquaredDistThreshold)
-            m_pfFeatureValues[4] = 1.0;
-        else
-            m_pfFeatureValues[4] = 0.0;
-*/
         bool feature4Set = false;
 
         for(int i = 0; i < FEATURE_DEPTH-1; i++)
@@ -432,10 +351,90 @@ if(m_pcAgent->GetBehavior() == DISPERSION)
     if(feature5Set == false)
         m_pfFeatureValues[5] = FEATURE_DEPTH-1;
 
-/**NEW FEATURE - Tests if the robot disperses correctly, often, as it should**/
-  //  m_pcAgent->GetVelocity();
- //   if (m_pcAgent->GetVectorAngle(m_pcAgent->GetVelocity(),m_pcAgent->GetCentreOfMassOfSurroundingAgents()) >= 175 && <= 185)
-// m_pcAgent->GetCenterOfMassOfSurroundingAgents();
+/////////////////////////////////FEATURE 7
+//The feature is supposed to test if a robot disperses correctly, ie turning away from the centre of mass of its surrounding agents
+//The agent should turn away from the centre of mass of surrounding agents if it gets too close
+//This feature tests the distance to centre of mass, and if the robot heading changes correctly
+
+    //Get distance from robot to centre of mass of surrounding agents
+    double distToCentreOfMass = sqrt( (m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).x - m_pcAgent->GetPosition()->x)
+                                        * (m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).x - m_pcAgent->GetPosition()->x)
+                                     + ((m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).y - m_pcAgent->GetPosition()->y)
+                                        * (m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).y - m_pcAgent->GetPosition()->y)) );
+
+
+//printf("\nDisttoCOM: %f, AngVel: %f, bot: %d;",distToCentreOfMass,m_pcAgent->GetAngularVelocity(),m_pcAgent->GetIdentification());
+
+    //if centre of mass of surrounding agents is within range, and heading has changed (angular velocity > threshold)
+    if(distToCentreOfMass < 2*FEATURE_RANGE && m_pcAgent->GetAngularVelocity() > 0.01){
+
+        bool feature6set = false;
+
+        //Get agent velocity
+        TVector2d velocityVec;
+        velocityVec.x = m_pcAgent->GetVelocity()->x;
+        velocityVec.y = m_pcAgent->GetVelocity()->y;
+
+        //Get robot heading and normalise
+        m_fRobotHeading = Vec2dOwnAngle(velocityVec);
+        if (m_fRobotHeading < 0)
+            m_fRobotHeading += 2 * M_PI;
+        else if(m_fRobotHeading >= 2*M_PI)
+            m_fRobotHeading -= 2*M_PI;
+
+
+        //Get angle to centre of mass and normalise
+        double m_fAngleToCentreOfMass = m_pcAgent->GetVectorAngle(*m_pcAgent->GetPosition(),m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT));
+
+        if(m_fAngleToCentreOfMass < 0)
+            m_fAngleToCentreOfMass += 2 * M_PI;
+        else if(m_fAngleToCentreOfMass >= 2 * M_PI)
+            m_fAngleToCentreOfMass -= 2 * M_PI;
+
+
+        //set opposite direction to 180 degrees from the angle to Centre of mass (+Pi)
+        double m_fOppositeAngleToCOM = m_fAngleToCentreOfMass + M_PI;
+        if (m_fOppositeAngleToCOM >= 2 * M_PI)
+            m_fOppositeAngleToCOM -= 2 * M_PI;
+
+
+        printf("\n\nBot: %d; Heading: %f;\n", m_pcAgent->GetIdentification(), m_fRobotHeading);
+        printf("AngletoCOM: %f; OppositeAngleToCOM: %f\n",m_fAngleToCentreOfMass, m_fOppositeAngleToCOM);
+
+
+        //Test if the robot turns 180 degrees away from the centre of mass of surrounding agents, with 5% tolerance (hence 0.95 and 1.05)
+        //if the robot has turned correctly, a counter is incremented, if not it is decremented (limits of 0 to m_iCorrectResponseTimeWindow)
+        if (m_fRobotHeading >= 0.95 * m_fOppositeAngleToCOM && m_fRobotHeading <= 1.05 * m_fOppositeAngleToCOM)
+        {
+             if (m_unCorrectResponse < m_iCorrectResponseTimeWindow)
+                m_unCorrectResponse++;
+        }
+        else
+        {
+            if(m_unCorrectResponse > 0)
+                m_unCorrectResponse--;
+        }
+
+        //Tracking count variable to see if the feature is working
+ //       if(m_pcAgent->GetIdentification() == 0 || m_pcAgent->GetIdentification() == 15)
+            printf("CorrectResponseCount: %d\n",m_unCorrectResponse);
+
+        //Set feature band based on count variable value
+        for(int i = 0; i < FEATURE_DEPTH-1; i++)
+        {
+            if (m_unCorrectResponse >= m_pfCorrectResponseBands[i] && m_unCorrectResponse < m_pfCorrectResponseBands[i+1])
+            {
+                m_pfFeatureValues[6] = i;
+                feature6set = true;
+            }
+        }
+
+        if(feature6set == false)
+        {
+            m_pfFeatureValues[6] = FEATURE_DEPTH-1;
+        }
+
+    }
 
 
 #ifdef DEBUGFEATUREVECTORFLAG
@@ -670,4 +669,3 @@ std::string CFeatureVector::ToString()
 
 /******************************************************************************/
 /******************************************************************************/
-
