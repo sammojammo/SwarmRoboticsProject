@@ -60,9 +60,9 @@ protected:
     int          m_iEventSelectionTimeWindow;
     int          m_iCorrectResponseTimeWindow;
 
-    double          m_fRobotHeading;
-    double          m_fPreviousRobotHeading;
-
+    double      m_fRobotHeading;
+    double      m_fPrevRobotHeading;
+    double      m_fPrevDistToCOM;
 
     double       m_tAngularAccelerationThreshold;
 

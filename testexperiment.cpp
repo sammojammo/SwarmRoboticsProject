@@ -486,9 +486,9 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
 #endif
 
         m_pcMisbehaveAgent[0]->CheckNeighborsResponseToMyFV(&unToleraters, &unAttackers, &unNbrsInSensoryRange, dbgflag);//true
-        printf("\nStep: %d, MisbehavingAgentResponse: tol: %d, att: %d, neighboursinsensoryrange: %d", un_step_number, unToleraters, unAttackers, unNbrsInSensoryRange);
+//        printf("\nStep: %d, MisbehavingAgentResponse: tol: %d, att: %d, neighboursinsensoryrange: %d", un_step_number, unToleraters, unAttackers, unNbrsInSensoryRange);
 
-        printf("\nMisbehavingAgentFeatureVector: %d\n\n", m_pcMisbehaveAgent[0]->GetFeatureVector()->GetValue());
+//        printf("\nMisbehavingAgentFeatureVector: %d\n\n", m_pcMisbehaveAgent[0]->GetFeatureVector()->GetValue());
         //printf("\nMisbehavingAgentStats: ");
         //PrintStatsForAgent(m_pcMisbehaveAgent[0]);
     }
@@ -509,15 +509,15 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
 #endif
 
             m_pcNormalAgentToTrack->CheckNeighborsResponseToMyFV(&unToleraters, &unAttackers, &unNbrsInSensoryRange, dbgflag);
-            printf("\nStep: %d, NormalAgentResponse: tol: %d, att: %d, neighboursinsensoryrange: %d", un_step_number, unToleraters, unAttackers, unNbrsInSensoryRange);
-            printf("\nNormalAgentFeatureVector: %d\n\n", m_pcNormalAgentToTrack->GetFeatureVector()->GetValue());
+//            printf("\nStep: %d, NormalAgentResponse: tol: %d, att: %d, neighboursinsensoryrange: %d", un_step_number, unToleraters, unAttackers, unNbrsInSensoryRange);
+//            printf("\nNormalAgentFeatureVector: %d\n\n", m_pcNormalAgentToTrack->GetFeatureVector()->GetValue());
             //printf("\nNormalAgentStats: ");
             //PrintStatsForAgent(m_pcNormalAgentToTrack);
         }
 
         TAgentVector* allagents = this->m_pcSimulator->GetAllAgents();
         TAgentVectorIterator i = allagents->begin();
-        printf("\nStep: %d, AgentsFeatureVectors: ", un_step_number);
+//        printf("\nStep: %d, AgentsFeatureVectors: ", un_step_number);
         while (i != allagents->end())
         {
 #ifdef OPTIMISED
@@ -526,7 +526,7 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
             CRobotAgent*          tmp_robotagent  = (CRobotAgent*) (*i);
 #endif
             const CFeatureVector* tmp_fv = tmp_robotagent->GetFeatureVector();
-            printf("%d %d   ",tmp_robotagent->GetIdentification(), tmp_fv->GetValue());
+//            printf("%d %d   ",tmp_robotagent->GetIdentification(), tmp_fv->GetValue());
             i++;
         }
     }
@@ -579,7 +579,7 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
     {
         TAgentVector* allagents = m_pcSimulator->GetAllAgents();
         TAgentVectorIterator i = allagents->begin();
-        printf("\n\nTimeLogFpOp: %u\t", un_step_number);
+//        printf("\n\nTimeLogFpOp: %u\t", un_step_number);
         while (i != allagents->end())
         {
 #ifdef OPTIMISED
@@ -587,10 +587,10 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
 #else
             CRobotAgent*          tmp_robotagent  = (CRobotAgent*) (*i);
 #endif
-            printf("%llu  ",tmp_robotagent->GetNumberFloatingPtOperations());
+//            printf("%llu  ",tmp_robotagent->GetNumberFloatingPtOperations());
             i++;
         }
-        printf("\n");
+//        printf("\n");
     }
 #endif
 
