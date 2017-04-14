@@ -568,6 +568,9 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
                     tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
                     tmp_fv->GetFeatureValue(6), unNbrsInSensoryRange, unAttackers, unToleraters);
             }
+            if(tmp_robotagent->GetBehavIdentification() == - 1)
+                printf(" -- FAULTY AGENT");
+
             i++;
         }
         printf("\n");
