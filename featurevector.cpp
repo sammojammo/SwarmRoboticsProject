@@ -27,7 +27,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_piLastOccuranceNegEvent = new int[m_unLength];
 
     m_iEventSelectionTimeWindow = MODELSTARTTIME; //1500;
-    m_iCorrectResponseTimeWindow = 150;
+    m_iCorrectResponseTimeWindow = 50;
     m_tAngularAccelerationThreshold = 0.032 * m_pcAgent->GetMaximumAngularVelocity();
 
     for(unsigned int i = 0; i < NUMBER_OF_FEATURES; i++)
@@ -377,20 +377,19 @@ void CFeatureVector::ComputeFeatureValues()
     //Get agent heading
     m_fRobotHeading = NormalizeAngle(Vec2dOwnAngle(velocityVec));
 
-    //Marker for each step for debugging in console
-    if(m_pcAgent->GetIdentification() == 0) printf("\n===========================Step: %d==============================", CurrentStepNumber);
-    printf("\nBot: %d, DisttoCOM: %f, AngVel: %f, Heading: %f",m_pcAgent->GetIdentification(),distToCentreOfMass,m_pcAgent->GetAngularVelocity(),m_fRobotHeading);
-
     //Get angle to centre of mass wrt current agent
     double m_fAngleToCentreOfMass = NormalizeAngle(Vec2dOwnAngle(COMwrtRobot));
     double m_fOppositeAngleToCOM = NormalizeAngle(m_fAngleToCentreOfMass + M_PI);
 
+    //Marker for each step for debugging in console
+  //  if(m_pcAgent->GetIdentification() == 0) printf("\n===========================Step: %d==============================", CurrentStepNumber);
+  //  printf("\nBot: %d, DisttoCoM: %f, OppositeAngleToCoM: %f, Heading: %f",m_pcAgent->GetIdentification(),distToCentreOfMass,m_fOppositeAngleToCOM,m_fRobotHeading);
 
     //if agent is approaching COM, COM is within range, and heading has changed
     if(m_fPrevDistToCOM > (FEATURE_RANGE/2.0) && distToCentreOfMass <= (FEATURE_RANGE/2.0) && (m_fRobotHeading != m_fPrevRobotHeading))
     {
-        printf("\nTesting Bot: %d; Heading: %f;\n", m_pcAgent->GetIdentification(), m_fRobotHeading);
-        printf("AngletoCOM: %f; OppositeAngleToCOM: %f\n",m_fAngleToCentreOfMass, m_fOppositeAngleToCOM);
+    //    printf("\nTesting Bot: %d; Heading: %f;\n", m_pcAgent->GetIdentification(), m_fRobotHeading);
+    //    printf("AngletoCOM: %f; OppositeAngleToCOM: %f\n",m_fAngleToCentreOfMass, m_fOppositeAngleToCOM);
 
         //Test if the robot turns 180 degrees away from the centre of mass of surrounding agents, with 5% tolerance (hence 0.95 and 1.05)
         //if the robot has turned correctly, a counter is incremented, if not it is decremented (limits of 0 to m_iCorrectResponseTimeWindow)
@@ -405,7 +404,7 @@ void CFeatureVector::ComputeFeatureValues()
                 m_unCorrectResponse--;
         }
         //Tracking count variable
-        printf("CorrectResponseCount: %d\n",m_unCorrectResponse);
+  //      printf("CorrectResponseCount: %d\n",m_unCorrectResponse);
     }
 
 
