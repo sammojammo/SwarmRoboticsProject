@@ -46,14 +46,14 @@ CTestExperiment::CTestExperiment(CArguments* pc_experiment_arguments,
     {
         m_eswarmbehavType = FLOCKING;
     }
-    else if (strcmp(swarmbehav, "HOMING1") == 0)
+    else if (strcmp(swarmbehav, "HOMING") == 0)
     {
         m_eswarmbehavType = HOMING1;
     }
-    else if (strcmp(swarmbehav, "HOMING2") == 0)
-    {
-        m_eswarmbehavType = HOMING2;
-    }
+//    else if (strcmp(swarmbehav, "HOMING2") == 0)
+//    {
+//        m_eswarmbehavType = HOMING2;
+//    }
     else if (strcmp(swarmbehav, "STRLN") == 0)
     {
         m_eswarmbehavType = STRAIGHTLINE;
@@ -100,14 +100,14 @@ CTestExperiment::CTestExperiment(CArguments* pc_experiment_arguments,
     {
         m_eerrorbehavType = FLOCKING;
     }
-    else if (strcmp(errorbehav, "HOMING1") == 0)
+    else if (strcmp(errorbehav, "HOMING") == 0)
     {
         m_eerrorbehavType = HOMING1;
     }
-    else if (strcmp(errorbehav, "HOMING2") == 0)
-    {
-        m_eerrorbehavType = HOMING2;
-    }
+//    else if (strcmp(errorbehav, "HOMING2") == 0)
+//    {
+//        m_eerrorbehavType = HOMING2;
+//    }
     else
     {
         m_eerrorbehavType = NOERR;
@@ -132,8 +132,8 @@ CTestExperiment::CTestExperiment(CArguments* pc_experiment_arguments,
         case AGGREGATION   : pchSwarmBehavior = "AGGREGATION"; break;
         case DISPERSION    : pchSwarmBehavior = "DISPERSION"; break;
         case FLOCKING      : pchSwarmBehavior = "FLOCKING"; break;
-        case HOMING1       : pchSwarmBehavior = "HOMING1"; break;
-        case HOMING2       : pchSwarmBehavior = "HOMING2"; break;
+        case HOMING1       : pchSwarmBehavior = "HOMING"; break;
+  //      case HOMING2       : pchSwarmBehavior = "HOMING2"; break;
 
         case STRAIGHTLINE  : pchSwarmBehavior = "STRAIGHTLINE"; break;
         case RANDOMWK      : pchSwarmBehavior = "RANDOMWK"; break;
@@ -155,15 +155,15 @@ CTestExperiment::CTestExperiment(CArguments* pc_experiment_arguments,
         case AGGREGATION   : pchErrorBehavior = "AGGREGATION"; break;
         case DISPERSION    : pchErrorBehavior = "DISPERSION"; break;
         case FLOCKING      : pchErrorBehavior = "FLOCKING"; break;
-        case HOMING1       : pchErrorBehavior = "HOMING1"; break;
-        case HOMING2       : pchErrorBehavior = "HOMING2"; break;
+        case HOMING1       : pchErrorBehavior = "HOMING"; break;
+ //       case HOMING2       : pchErrorBehavior = "HOMING2"; break;
 
         default:
             pchErrorBehavior = "UNKNOWN";
         }
 
-        printf("swarmbehav=[AGGREGATION,DISPERSION,FLOCKING,HOMING1,HOMING2,STRLN,RNDWK,CIRCLE,STOP] -- behavior selected: %s\n", pchSwarmBehavior);
-        printf("errorbehav=[STRLN,RNDWK,CIRCLE,STOP,AGGREGATION,DISPERSION,FLOCKING,HOMING1,HOMING2]                        -- behavior selected: %s\n", pchErrorBehavior);
+        printf("swarmbehav=[AGGREGATION,DISPERSION,FLOCKING,HOMING,STRLN,RNDWK,CIRCLE,STOP] -- behavior selected: %s\n", pchSwarmBehavior);
+        printf("errorbehav=[STRLN,RNDWK,CIRCLE,STOP,AGGREGATION,DISPERSION,FLOCKING,HOMING]                        -- behavior selected: %s\n", pchErrorBehavior);
         printf("misbehavestep=#       Step when agent starts misbehaving [%d]\n",m_unMisbehaveStep);
         printf("tracknormalagent=#    Id of normal agent to track [%d]\n",  m_unNormalAgentToTrack);
         printf("trackabnormalagent=#  Id of abnormal agent to track [%d]\n",m_unAbnormalAgentToTrack);
@@ -517,7 +517,6 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
 
         TAgentVector* allagents = this->m_pcSimulator->GetAllAgents();
         TAgentVectorIterator i = allagents->begin();
-//        printf("\nStep: %d, AgentsFeatureVectors: ", un_step_number);
         while (i != allagents->end())
         {
 #ifdef OPTIMISED
@@ -526,11 +525,10 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
             CRobotAgent*          tmp_robotagent  = (CRobotAgent*) (*i);
 #endif
             const CFeatureVector* tmp_fv = tmp_robotagent->GetFeatureVector();
-//            printf("%d %d   ",tmp_robotagent->GetIdentification(), tmp_fv->GetValue());
             i++;
         }
     }
-    printf("\n\n\n=========================Step: %d ==============================",un_step_number);
+    printf("\n\n=========================Step: %d ==============================",un_step_number);
 
 
     // logging the responses (minimal log) to all the agents
@@ -558,13 +556,13 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
 //if statement is for console output so features line up and are easier to read (previously, for ID 10 and above data was one space right so harder to read)
             if(tmp_robotagent->GetIdentification() < 10)
             {
-                printf("\nId: 0%d, Features1-7: %0.0f%0.0f%0.0f%0.0f%0.0f%0.0f%0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
+                printf("\nId: 0%d, Features1-7: %0.0f|%0.0f|%0.0f|%0.0f|%0.0f|%0.0f|%0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
                     tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
                     tmp_fv->GetFeatureValue(6), unNbrsInSensoryRange, unToleraters, unAttackers, un_step_number);
             }
             else
             {
-                printf("\nId: %d, Features1-7: %0.0f%0.0f%0.0f%0.0f%0.0f%0.0f%0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
+                printf("\nId: %d, Features1-7: %0.0f|%0.0f|%0.0f|%0.0f|%0.0f|%0.0f|%0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
                     tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
                     tmp_fv->GetFeatureValue(6), unNbrsInSensoryRange, unAttackers, unToleraters, un_step_number);
             }
