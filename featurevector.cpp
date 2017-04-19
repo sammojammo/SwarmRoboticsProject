@@ -69,14 +69,12 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_punNbrsRange3to6AtTimeStep = new unsigned int[m_iEventSelectionTimeWindow];
 
 
-    //Sensory motor variables F2,F3
+    //Sensory motor variables F3
     m_unTurnCurrQueueIndex = 0;
 
     m_unSensoryMotorNearCount = 0;
-    m_unSensoryMotorFarCount = 0;
 
     m_punTurnedWithNbrsAtTimeStep = new unsigned int[m_iEventSelectionTimeWindow];
-    m_punTurnedWithoutNbrsAtTimeStep = new unsigned int[m_iEventSelectionTimeWindow];
 
     //F7 Variables
     m_fRobotHeading = 0.0;
@@ -112,7 +110,6 @@ CFeatureVector::~CFeatureVector()
     delete m_punNbrsRange3to6AtTimeStep;
 
     delete m_punTurnedWithNbrsAtTimeStep;
-    delete m_punTurnedWithoutNbrsAtTimeStep;
 
     delete m_pvecCoordAtTimeStep;
 
@@ -252,8 +249,7 @@ void CFeatureVector::ComputeFeatureValues()
     // Sensors-motor interactions
     // Set if the occurance of the following event, atleast once in time window X
     // 3rd: distance to nbrs 0-6 && change in angular acceleration
-    // 4th: no neighbors detected  && change in angular acceleration
-    bool feature3Set = false, feature4Set = false;
+    bool feature3Set = false;
 
     if(dist_nbrsagents < 6.0 &&
         (angle_acceleration > m_tAngularAccelerationThreshold || angle_acceleration < -m_tAngularAccelerationThreshold))
@@ -263,16 +259,6 @@ void CFeatureVector::ComputeFeatureValues()
     }
     else
         m_punTurnedWithNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 0;
-
-
-    if(dist_nbrsagents == 6.0 &&
-        (angle_acceleration > m_tAngularAccelerationThreshold || angle_acceleration < -m_tAngularAccelerationThreshold))
-    {
-        m_unSensoryMotorFarCount++;
-        m_punTurnedWithoutNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 1;
-    }
-    else
-        m_punTurnedWithoutNbrsAtTimeStep[m_unTurnCurrQueueIndex] = 0;
 
     //Increment counter - counts to limit X then resets to 0
     m_unTurnCurrQueueIndex = (m_unTurnCurrQueueIndex + 1) % m_iEventSelectionTimeWindow;
@@ -290,30 +276,16 @@ void CFeatureVector::ComputeFeatureValues()
             }
         }
 
-        for(int i = 0; i < FEATURE_DEPTH-1; i++)
-        {
-            if( (m_unSensoryMotorFarCount >= m_pfSensoryMotorBands[i]) && (m_unSensoryMotorFarCount < m_pfSensoryMotorBands[i+1]))
-            {
-                m_pfFeatureValues[3] = i;
-                feature4Set = true;
-                break;
-            }
-        }
-
         if(feature3Set == false)
             m_pfFeatureValues[2] = FEATURE_DEPTH-1;
 
-        if(feature4Set == false)
-            m_pfFeatureValues[3] = FEATURE_DEPTH-1;
-
         m_unSensoryMotorNearCount -= m_punTurnedWithNbrsAtTimeStep[m_unTurnCurrQueueIndex];
-        m_unSensoryMotorFarCount -= m_punTurnedWithoutNbrsAtTimeStep[m_unTurnCurrQueueIndex];
 
     }
 
     // Motors
-    //5th: distance travelled by bot in past Y time-steps. Higher than 5% of max-possible distance travelled is accepted as feature=1.
-    bool feature5Set = false;
+    //4th: distance travelled by bot in past Y time-steps. Higher than 5% of max-possible distance travelled is accepted as feature=1.
+    bool feature4Set = false;
 
     TVector2d vecAgentPos = *(m_pcAgent->GetPosition());
 
@@ -328,14 +300,14 @@ void CFeatureVector::ComputeFeatureValues()
         {
             if((m_fSquaredDistTravelled >= m_pfSquaredDistBands[i]) && (m_fSquaredDistTravelled < m_pfSquaredDistBands[i+1]))
             {
-                m_pfFeatureValues[4] = i;
-                feature5Set = true;
+                m_pfFeatureValues[3] = i;
+                feature4Set = true;
                 break;
             }
         }
 
-        if(feature5Set == false)
-            m_pfFeatureValues[4] = FEATURE_DEPTH-1;
+        if(feature4Set == false)
+            m_pfFeatureValues[3] = FEATURE_DEPTH-1;
     }
 
     // adding new coordinate values into the queue
@@ -343,30 +315,29 @@ void CFeatureVector::ComputeFeatureValues()
     m_unCoordCurrQueueIndex = (m_unCoordCurrQueueIndex + 1) % m_iDistTravelledTimeWindow;
 
 
-    //6th: velocity, higher than 5% of speed is accepted as feature=1
-    //    m_pfFeatureValues[5] = (mag_velocity >= m_fVelocityThreshold) ? 1.0:0.0;
-    bool feature6Set = false;
+    //5th: velocity, higher than 5% of speed is accepted as feature=1
+    bool feature5Set = false;
 
     for(int i = 0; i < FEATURE_DEPTH-1; i++)
     {
         if(mag_velocity >= m_pfVelocityBands[i] && mag_velocity < m_pfVelocityBands[i+1])
         {
-           m_pfFeatureValues[5] = i;
-           feature6Set = true;
+           m_pfFeatureValues[4] = i;
+           feature5Set = true;
            break;
         }
     }
 
-    if(feature6Set == false)
-        m_pfFeatureValues[5] = FEATURE_DEPTH-1;
+    if(feature5Set == false)
+        m_pfFeatureValues[4] = FEATURE_DEPTH-1;
 
-    //7th:
+    //6th:
     //The feature is supposed to test if a robot disperses correctly, ie turning away from the centre of mass of its surrounding agents
     //The agent should turn away from the centre of mass of surrounding agents if it gets too close
     //This feature tests the distance to centre of mass, and if the robot heading changes correctly
-    bool feature7Set = false;
+    bool feature6Set = false;
 
-    //Get the cntre of mass of surrounding agents with respect to the current agent
+    //Get the centre of mass of surrounding agents with respect to the current agent
     TVector2d COMwrtRobot;
     COMwrtRobot.x = m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).x - m_pcAgent->GetPosition()->x;
     COMwrtRobot.y = m_pcAgent->GetCenterOfMassOfSurroundingAgents(FEATURE_RANGE,ROBOT).y - m_pcAgent->GetPosition()->y;
@@ -411,14 +382,14 @@ void CFeatureVector::ComputeFeatureValues()
     {
         if (m_unCorrectResponse >= m_pfCorrectResponseBands[i] && m_unCorrectResponse < m_pfCorrectResponseBands[i+1])
         {
-            m_pfFeatureValues[6] = i;
-            feature7Set = true;
+            m_pfFeatureValues[5] = i;
+            feature6Set = true;
             break;
         }
     }
 
-    if(feature7Set == false)
-        m_pfFeatureValues[6] = FEATURE_DEPTH-1;
+    if(feature6Set == false)
+        m_pfFeatureValues[5] = FEATURE_DEPTH-1;
 
         m_fPrevRobotHeading = m_fRobotHeading;
         m_fPrevDistToCOM = distToCentreOfMass;

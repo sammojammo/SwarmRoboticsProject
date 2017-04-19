@@ -92,14 +92,8 @@ protected:
 
     //Sensory motor vars
     unsigned int  m_unTurnCurrQueueIndex;
-
-    unsigned int  m_unSensoryMotorFarCount;
     unsigned int  m_unSensoryMotorNearCount;
-
     unsigned int* m_punTurnedWithNbrsAtTimeStep;
-    unsigned int* m_punTurnedWithoutNbrsAtTimeStep;
-
-
 
 
     // keeping track of distance travelled by bot in last 100 time-steps
