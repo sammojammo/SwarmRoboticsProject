@@ -556,15 +556,15 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
 //if statement is for console output so features line up and are easier to read (previously, for ID 10 and above data was one space right so harder to read)
             if(tmp_robotagent->GetIdentification() < 10)
             {
-                printf("\nId: 0%d, Features1-7: %0.0f|%0.0f|%0.0f|%0.0f|%0.0f|%0.0f|%0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
+                printf("\nId: 0%d, Features1-6: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
                     tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
-                    tmp_fv->GetFeatureValue(6), unNbrsInSensoryRange, unToleraters, unAttackers, un_step_number);
+                    unNbrsInSensoryRange, unToleraters, unAttackers, un_step_number);
             }
             else
             {
-                printf("\nId: %d, Features1-7: %0.0f|%0.0f|%0.0f|%0.0f|%0.0f|%0.0f|%0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
+                printf("\nId: %d, Features1-6: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
                     tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
-                    tmp_fv->GetFeatureValue(6), unNbrsInSensoryRange, unAttackers, unToleraters, un_step_number);
+                    unNbrsInSensoryRange, unAttackers, unToleraters, un_step_number);
             }
             if(tmp_robotagent->GetBehavIdentification() == - 1)
                 printf(" -- FAULTY AGENT");
