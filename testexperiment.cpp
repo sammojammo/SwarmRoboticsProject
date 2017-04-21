@@ -558,7 +558,7 @@ void CTestExperiment::SimulationStep(unsigned int un_step_number)
             {
                 printf("\nId: 0%d, Features1-6: %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f, nbrsinrange: %d, att: %d, tol: %d, Step: %d", tmp_robotagent->GetIdentification(),
                     tmp_fv->GetFeatureValue(0), tmp_fv->GetFeatureValue(1), tmp_fv->GetFeatureValue(2), tmp_fv->GetFeatureValue(3), tmp_fv->GetFeatureValue(4), tmp_fv->GetFeatureValue(5),
-                    unNbrsInSensoryRange, unToleraters, unAttackers, un_step_number);
+                    unNbrsInSensoryRange, unAttackers, unToleraters, un_step_number);
             }
             else
             {
