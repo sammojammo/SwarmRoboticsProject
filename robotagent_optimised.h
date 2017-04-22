@@ -41,6 +41,7 @@ struct structFVsSensed
 #include "behavior.h"
 #include "crminrobotagent_optimised.h"
 #include "thresholdinrobotagent_optimised.h"
+#include "lineqinrobotagent.h"
 
 /******************************************************************************/
 /******************************************************************************/
@@ -71,6 +72,7 @@ public:
 
     virtual inline CRMinRobotAgentOptimised* GetCRMinRobotAgent() {return crminAgent;}
     virtual inline ThresholdinRobotAgentOptimised* GetThresholdinRobotAgent() {return thresholdinAgent;}
+virtual inline LINEQinRobotAgent* GetLINEQinRobotAgent() {return lineqinAgent;}
 
     virtual void  SetWeight(double f_weight);
     virtual double GetWeight() const;
@@ -125,6 +127,8 @@ protected:
     TBehaviorVector             m_vecBehaviors;
     CRMinRobotAgentOptimised*   crminAgent;
     ThresholdinRobotAgentOptimised* thresholdinAgent;
+LINEQinRobotAgent* lineqinAgent;
+
 
     double              m_fWeight;
     double              m_fBitflipProbabililty;

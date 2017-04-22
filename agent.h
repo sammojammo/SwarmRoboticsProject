@@ -6,7 +6,7 @@
 // FAULT DETECTION MODEL TYPE
 enum faultdetectionmodeltype {CRM, CRM_TCELLSINEXCESS, CTRNN, LINEQ, THRESHOLDONFVDIST};
 
-#define FDMODELTYPE  THRESHOLDONFVDIST
+#define FDMODELTYPE  LINEQ
 
 /******************************************************************************/
 /******************************************************************************/
@@ -73,10 +73,10 @@ typedef struct {
     float fGreen;
     float fBlue;
 } TColor3f;
-       
 
 
-enum EControllerType 
+
+enum EControllerType
 {
     RANDOMWALK,
     REGULARBOUNCE,
@@ -84,7 +84,7 @@ enum EControllerType
 };
 
 
-enum EAgentType 
+enum EAgentType
 {
     ANY,
     ROBOT,
@@ -108,10 +108,10 @@ typedef vector<CAgent*>::iterator   TAgentVectorIterator;
 
 class CAgent : public CSimObject
 {
-public: 
+public:
     CAgent(const char* pch_name, unsigned int un_identification, CArguments* pc_arguments);
     virtual ~CAgent();
-    
+
     // Get the current position of the agent:
     virtual const TVector2d* GetPosition() const;
 
@@ -142,11 +142,11 @@ public:
 
     // Get the angle between the two vectors (acos)
     virtual double GetVectorAngle(TVector2d vector1, TVector2d vector2);
-       
+
     // This method is called if the agent moves to a new arena square.
     // Useful to calculate distances to other agents, update physical
     // links etc.
-    virtual void SimulationStep(unsigned int n_step_number);    
+    virtual void SimulationStep(unsigned int n_step_number);
     virtual void SimulationStepUpdatePosition();
 
     virtual void   SetMaximumSpeed(double f_max_speed);
@@ -155,15 +155,15 @@ public:
     virtual double GetMaximumAngularVelocity() const;
 
     static unsigned int g_unGlobalNumberOfAgentsCreated;
-    
+
     virtual unsigned int GetColor();
     virtual void         SetColor(unsigned int un_index);
 
-    virtual double       GetSize(); 
-       
+    virtual double       GetSize();
+
     virtual EAgentType   GetType() = 0;
 //    virtual bool         AcceptConnections() = 0;
-    
+
     virtual inline unsigned int GetIdentification() {return m_unIdentification;}
 
     virtual void SetBehavIdentification(int i_behavidentification);
@@ -173,7 +173,7 @@ public:
     double    m_fTempDistance;
 
     static double RADIUS;
-        
+
     virtual CAgent* GetClosestAgent(double f_range, EAgentType e_type);
 
     virtual TVector2d    GetCenterOfMassOfSurroundingAgents(double f_range, EAgentType e_type);
@@ -184,15 +184,15 @@ public:
     virtual CAgent*      GetRandomAgentWithinRange(TAgentListList* ptlist_agent_list_list, double f_range, EAgentType e_type);
     virtual unsigned int CountAgentsInAgentListList(TAgentListList* ptlist_agent_list_list, double f_range, EAgentType e_type);
     virtual unsigned int CountAgents(double f_range, EAgentType e_type);
- 
-    virtual void SetRandomVelocity();    
+
+    virtual void SetRandomVelocity();
     virtual void MoveTowards(TVector2d t_position, double f_max_speed);
 
     virtual void SortAllAgentsAccordingToDistance(TAgentVector* pt_result);
     virtual void SetBehavior(ESwarmBehavType e_behavior);
     virtual ESwarmBehavType GetBehavior();
 
-                             
+
 protected:
     ESwarmBehavType m_eBehavior;
 
@@ -207,7 +207,7 @@ protected:
     double       m_tAngularAcceleration; // tracks changes in velocity (direction) of the agent
 
     EControllerType    m_eControllerType;
-    
+
     bool               m_bInteractable;
 
     unsigned int       m_unIdentification;
@@ -216,8 +216,8 @@ protected:
 
     unsigned int       m_unColor;
 
-    double             m_fProportionalDirectionNoise; 
-    double             m_fProportionalMagnitudeNoise; 
+    double             m_fProportionalDirectionNoise;
+    double             m_fProportionalMagnitudeNoise;
 
     CArguments*        m_pcArguments;
 };

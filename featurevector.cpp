@@ -4,12 +4,11 @@
 /******************************************************************************/
 /******************************************************************************/
 
-unsigned int CFeatureVector::NUMBER_OF_FEATURES        = 7;
+unsigned int CFeatureVector::NUMBER_OF_FEATURES        = 6;
 unsigned int CFeatureVector::NUMBER_OF_FEATURE_VECTORS = 0;
-double       CFeatureVector::FEATURE_RANGE             = 7.0;
+double       CFeatureVector::FEATURE_RANGE             = 6.0;
 //new feature depth variable - number of possible values each feature can have
 double       CFeatureVector::FEATURE_DEPTH             = 4.0;
-
 /******************************************************************************/
 /******************************************************************************/
 

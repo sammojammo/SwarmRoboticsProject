@@ -12,7 +12,7 @@ LINEQinRobotAgent::LINEQinRobotAgent(CRobotAgent* ptr_robotAgent, CArguments* m_
     static bool bHelpDisplayed = false;
 
     CFeatureVector::NUMBER_OF_FEATURES = m_lineqArguments->GetArgumentAsIntOr("numberoffeatures", 6);
-    m_fcross_affinity                  = m_lineqArguments->GetArgumentAsDoubleOr("cross-affinity", 0.15);
+    m_fcross_affinity                  = m_lineqArguments->GetArgumentAsDoubleOr("cross_affinity", 0.8);
     m_fTryExchangeProbability          = m_lineqArguments->GetArgumentAsDoubleOr("exchangeprob", 0.5);
     m_fFVtoApcscaling                  = m_lineqArguments->GetArgumentAsDoubleOr("fvapcscaling", 1.0); //2.0E-3
 
@@ -26,7 +26,7 @@ LINEQinRobotAgent::LINEQinRobotAgent(CRobotAgent* ptr_robotAgent, CArguments* m_
     {
         printf("numberoffeatures=#            Number of features in a single FV [%d]\n"
                "exchangeprob=#.#              Probability of trying to exchange cells with other robots [%f]\n"
-               "cross-affinity=#.#            Level of cross-affinity (>0)     [%2.5f]\n"
+               "cross_affinity=#.#            Level of cross-affinity (>0)     [%2.5f]\n"
                "fvapcscaling=#.#              Scaling parameter of [FV] to [APC] [%e]\n"
 
 
@@ -91,7 +91,6 @@ LINEQinRobotAgent::~LINEQinRobotAgent()
     //    delete [] m_pfAffinities;
 }
 
-
 /******************************************************************************/
 /******************************************************************************/
 
@@ -111,8 +110,8 @@ void LINEQinRobotAgent::SimulationStepUpdatePosition()
             inputs += GetAf(index,inputindex) * m_pfAPCs[inputindex];
 
 //As m_fMemory is 0, m_pfLineqFV = inputs (=Yi)
-        m_pfLineqFV[index]  = (1.0 - m_fMemory) * inputs +
-                              m_fMemory * m_pfLineqFV[index];
+        m_pfLineqFV[index]  =  inputs;// * (1.0 - m_fMemory) +
+                                    //m_fMemory * m_pfLineqFV[index];
 
         if(m_pfLineqFV[index] < ACTIVATIONLOWERBOUND)
             m_pfLineqFV[index] = 0.0;
