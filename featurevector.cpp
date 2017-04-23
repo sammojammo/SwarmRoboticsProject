@@ -26,7 +26,7 @@ CFeatureVector::CFeatureVector(CAgent* pc_agent) : m_pcAgent(pc_agent)
     m_piLastOccuranceNegEvent = new int[m_unLength];
 
     m_iEventSelectionTimeWindow = MODELSTARTTIME;
-    m_iCorrectResponseTimeWindow = 20;
+    m_iCorrectResponseTimeWindow = FEATURE_DEPTH;
     m_tAngularAccelerationThreshold = 0.032 * m_pcAgent->GetMaximumAngularVelocity();
 
     for(unsigned int i = 0; i < NUMBER_OF_FEATURES; i++)

@@ -119,7 +119,7 @@ void LINEQinRobotAgent::SimulationStepUpdatePosition()
 
 #endif
 
-    m_fWeight = 0.0;
+ /*   m_fWeight = 0.0;
     for(unsigned index=0; index < m_unNumberOfReceptors; index++)
     {
         m_fWeight += m_pfLineqFV[index];
@@ -132,7 +132,7 @@ void LINEQinRobotAgent::SimulationStepUpdatePosition()
     //CRobotAgent* pcRemoteRobotAgent = robotAgent->GetRandomRobotWithWeights(2.0*robotAgent->GetFVSenseRange());
 
     // select the robot from one of the 10 nearest neighbours - but in these expts. comm does not seem to be needed
-    CRobotAgent* pcRemoteRobotAgent = robotAgent->GetRandomRobotWithWeights((unsigned int)((double)robotAgent->GetSelectedNumNearestNbrs()*1.0));
+    CRobotAgentOptimised* pcRemoteRobotAgent = robotAgent->GetRandomRobotWithWeights((unsigned int)((double)robotAgent->GetSelectedNumNearestNbrs()*1.0));
 
     if (pcRemoteRobotAgent != NULL)
     {
@@ -154,7 +154,7 @@ void LINEQinRobotAgent::SimulationStepUpdatePosition()
             }
         }
     }
-
+*/
     UpdateState();
 }
 

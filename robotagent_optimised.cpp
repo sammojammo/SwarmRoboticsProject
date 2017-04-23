@@ -15,8 +15,8 @@ CRobotAgentOptimised::CRobotAgentOptimised(const char* pch_name, unsigned int un
         crminAgent = new CRMinRobotAgentOptimised(this, pc_model_arguments);
     else if(FDMODELTYPE == THRESHOLDONFVDIST)
         thresholdinAgent = new ThresholdinRobotAgentOptimised(this, pc_model_arguments);
-    else if(FDMODELTYPE == LINEQ)
-        lineqinAgent = new LINEQinRobotAgent(this, pc_model_arguments);
+    else if(FDMODELTYPE == EUCLIDEANDIST)
+        euclideanDistinAgent = new EuclideanDistinRobotAgentOptimised(this, pc_model_arguments);
     else { printf("\nUnknown model type"); exit(-1);}
 
     CFeatureVector::FEATURE_DEPTH = pc_arguments->GetArgumentAsDoubleOr("featuredepth", 4.0);
@@ -122,8 +122,8 @@ void CRobotAgentOptimised::SimulationStepUpdatePosition()
             crminAgent->SimulationStepUpdatePosition();
         else if(FDMODELTYPE == THRESHOLDONFVDIST)
             thresholdinAgent->SimulationStepUpdatePosition();
-        else if(FDMODELTYPE == LINEQ)
-            lineqinAgent->SimulationStepUpdatePosition();
+        else if(FDMODELTYPE == EUCLIDEANDIST)
+            euclideanDistinAgent->SimulationStepUpdatePosition();
 
     CAgent::SimulationStepUpdatePosition();
 }
