@@ -49,12 +49,13 @@ void EuclideanDistinRobotAgentOptimised::SimulationStepUpdatePosition()
     {
         double inputs = 0.0;
 
-        int it_fvsensedinner = 0;
+        int i = 0;
 
-        while(it_fvsensedinner <=it_fvsensed->fRobots)
+        while(i <= it_fvsensed->fRobots)
         {
-            inputs += GetAf(distance(fvsensed->begin(), it_fvsensed),it_fvsensedinner);
-            ++it_fvsensedinner;
+            //get affinity between agents FV, and current FV from list of sensed FVs
+            inputs += GetAf(robotAgent->GetFeatureVector()->GetValue(), it_fvsensed->uFV);
+            ++i;
         }
         m_pfYi[distance(fvsensed->begin(), it_fvsensed)]  =  inputs;
 
@@ -101,7 +102,7 @@ double EuclideanDistinRobotAgentOptimised::GetAfEuclidean(unsigned int fv1, unsi
     /*Create mask using bit depth of each feature*/
     unsigned int featureMask = 0;
 
-    for(int i = 0; i < CFeatureVector::FEATURE_DEPTH; i++)
+    for(int i = 0; i < (int)log2(CFeatureVector::FEATURE_DEPTH); i++)
         featureMask += (1 << i);
 
     unsigned int value1 = 0, value2 = 0, currentSum = 0;
@@ -111,9 +112,8 @@ double EuclideanDistinRobotAgentOptimised::GetAfEuclidean(unsigned int fv1, unsi
     for(int i = 0; i < CFeatureVector::NUMBER_OF_FEATURES; i++)
     {
         /*shift FV right so the & operation gives the binary value of the feature without 0 padding to the right of it*/
-        value1 = ((fv1 >> (i * (unsigned int)CFeatureVector::FEATURE_DEPTH)) & featureMask);
-        value2 = ((fv2 >> (i * (unsigned int)CFeatureVector::FEATURE_DEPTH)) & featureMask);
-
+        value1 = ((fv1 >> (i * (unsigned int)log2(CFeatureVector::FEATURE_DEPTH))) & featureMask);
+        value2 = ((fv2 >> (i * (unsigned int)log2(CFeatureVector::FEATURE_DEPTH))) & featureMask);
         currentSum += ((value1 - value2) * (value1 - value2));
     }
 
