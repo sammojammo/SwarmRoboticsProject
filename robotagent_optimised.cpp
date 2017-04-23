@@ -372,12 +372,9 @@ unsigned int CRobotAgentOptimised::GetColor()
         else
             return RED;
     }
-    //changing initial colours so tracked normal agents are dark green, abnormal agent is dark red
-   if(GetIdentification() == 1)
-        return HALFGREEN;
-   else if(GetIdentification() == 3)
-        return HALFGREEN;
-   if(GetIdentification() == 15)
+
+    //changing initial colour of faulty robot so it can be identified at simulation start
+    if(GetBehavIdentification() == -1)
        return HALFRED;
 
     return BLUE;

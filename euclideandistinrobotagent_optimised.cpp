@@ -41,32 +41,22 @@ EuclideanDistinRobotAgentOptimised::~EuclideanDistinRobotAgentOptimised()
 
 void EuclideanDistinRobotAgentOptimised::SimulationStepUpdatePosition()
 {
-    // Convert the number of feature vectors from robot agents in the vicinity to APCs for the LINEQ
-  //  Sense();
-
 #ifndef DISABLEMODEL_RETAINRNDCALLS // DISABLEMODEL_RETAINRNDCALLS is defined so as to be closer to the same sequence of random numbers generated with the normal working of the LINEQ, so that the same agent behaviors may be obtained when LINEQ is disabled.
     list<structFVsSensed>* fvsensed = robotAgent->GetFeatureVectorsSensed();
     list<structFVsSensed>::iterator it_fvsensed = fvsensed->begin();
 
     while(it_fvsensed != fvsensed->end())
-    //for(unsigned index=0; index < m_unNumberOfReceptors; index++)
     {
-        //m_pfLineqFV_prev[it_fvsensed]  = m_pfLineqFV[it_fvsensed];
-
         double inputs = 0.0;
 
         int it_fvsensedinner = 0;
-        //list<structFVsSensed>::iterator it_fvsensedinner = it_fvsensed->fRobots;
+
         while(it_fvsensedinner <=it_fvsensed->fRobots)
-        //for(unsigned inputindex=0; inputindex < m_unNumberOfReceptors; inputindex++)
         {
-            inputs += GetAf(distance(fvsensed->begin(), it_fvsensed),it_fvsensedinner); //* m_pfAPCs[inputindex];
+            inputs += GetAf(distance(fvsensed->begin(), it_fvsensed),it_fvsensedinner);
             ++it_fvsensedinner;
         }
         m_pfYi[distance(fvsensed->begin(), it_fvsensed)]  =  inputs;
-
-        //if(m_pfLineqFV[it_fvsensed] < ACTIVATIONLOWERBOUND)
-         //   m_pfLineqFV[it_fvsensed] = 0.0;
 
         ++it_fvsensed;
     }
