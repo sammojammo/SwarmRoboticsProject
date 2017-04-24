@@ -34,7 +34,7 @@ mkdir --parents /home/sam/Documents/FinalYearProject/DataLogs/RawLogs
 #run simulations for range of seeds specified in arguments - output logs to RawLogs directory
 for((i=num1; i<=num2; i++));
 do
-    /home/sam/simulator/bioinstsim2 -a sizex=50,sizey=50,resx=10,resy=10,help -e name=TEST,swarmbehav=$4,errorbehav=$5,misbehavestep=0,tracknormalagent=1,trackabnormalagent=15 -T maxspeed=0.1,count=20,fvsenserange=10,featuresenserange=6,bitflipprob=0.0,featuredepth=$3,numvotingnbrs=10,selectnumnearestnbrs=10 -M cross-affinity=$6,lineqfv_threshold=$7,numberoffeatures=6 -s $i -n 5000 -z >"/home/sam/Documents/FinalYearProject/DataLogs/RawLogs/${3}bit_${swarmbehavShort}_${errorbehavShort}_seed${i}.log"
+    /home/sam/simulator/bioinstsim2 -a sizex=50,sizey=50,resx=10,resy=10,help -e name=TEST,swarmbehav=${4},errorbehav=${5},misbehavestep=0,tracknormalagent=1,trackabnormalagent=15 -T maxspeed=0.1,count=20,fvsenserange=10,featuresenserange=6,bitflipprob=0.0,featuredepth=${3},numvotingnbrs=10,selectnumnearestnbrs=10 -M cross-affinity=${6},euclidean_threshold=${7},numberoffeatures=6 -s ${i} -n 10000 -z >"/home/sam/Documents/FinalYearProject/DataLogs/RawLogs/${3}depth_${swarmbehavShort}_${errorbehavShort}_seed${i}.log"
 
     echo "Simulation $i finished"
 done
@@ -42,7 +42,7 @@ done
 #run extract data script on raw logs
 for((i=num1; i<=num2; i++));
 do
-    f="/home/sam/Documents/FinalYearProject/DataLogs/RawLogs/${3}bit_${swarmbehavShort}_${errorbehavShort}_seed${i}.log"
+    f="/home/sam/Documents/FinalYearProject/DataLogs/RawLogs/${3}depth_${swarmbehavShort}_${errorbehavShort}_seed${i}.log"
     cat $f | grep Id:  | awk  '{print $2 " " $4 " " $5 " " $6 " " $7 " " $8 " " $9 " " $11 " " $13 " " $15 " " $17}' | sed  's/,/ /g' > ${f}_extractedData
 
     echo "Log ${i} data extracted"
