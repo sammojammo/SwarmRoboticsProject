@@ -4,9 +4,9 @@
 /******************************************************************************/
 /******************************************************************************/
 // FAULT DETECTION MODEL TYPE
-enum faultdetectionmodeltype {CRM, CRM_TCELLSINEXCESS, CTRNN, LINEQ, THRESHOLDONFVDIST};
+enum faultdetectionmodeltype {CRM, CRM_TCELLSINEXCESS, CTRNN, LINEQ, THRESHOLDONFVDIST, EUCLIDEANDIST};
 
-#define FDMODELTYPE  LINEQ
+#define FDMODELTYPE  EUCLIDEANDIST
 
 /******************************************************************************/
 /******************************************************************************/

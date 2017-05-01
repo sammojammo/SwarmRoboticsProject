@@ -19,6 +19,11 @@ class ThresholdinRobotAgentOptimised;
 /******************************************************************************/
 /******************************************************************************/
 
+class EuclideanDistinRobotAgentOptimised;
+
+/******************************************************************************/
+/******************************************************************************/
+
 struct structFVsSensed
 {
     unsigned int uFV;
@@ -41,7 +46,7 @@ struct structFVsSensed
 #include "behavior.h"
 #include "crminrobotagent_optimised.h"
 #include "thresholdinrobotagent_optimised.h"
-#include "lineqinrobotagent.h"
+#include "euclideandistinrobotagent_optimised.h"
 
 /******************************************************************************/
 /******************************************************************************/
@@ -72,7 +77,7 @@ public:
 
     virtual inline CRMinRobotAgentOptimised* GetCRMinRobotAgent() {return crminAgent;}
     virtual inline ThresholdinRobotAgentOptimised* GetThresholdinRobotAgent() {return thresholdinAgent;}
-virtual inline LINEQinRobotAgent* GetLINEQinRobotAgent() {return lineqinAgent;}
+    virtual inline EuclideanDistinRobotAgentOptimised* GetEuclideanDistinRobotAgent() {return euclideanDistinAgent;}
 
     virtual void  SetWeight(double f_weight);
     virtual double GetWeight() const;
@@ -127,7 +132,7 @@ protected:
     TBehaviorVector             m_vecBehaviors;
     CRMinRobotAgentOptimised*   crminAgent;
     ThresholdinRobotAgentOptimised* thresholdinAgent;
-LINEQinRobotAgent* lineqinAgent;
+    EuclideanDistinRobotAgentOptimised* euclideanDistinAgent;
 
 
     double              m_fWeight;

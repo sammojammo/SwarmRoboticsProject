@@ -12,7 +12,7 @@ EuclideanDistinRobotAgentOptimised::EuclideanDistinRobotAgentOptimised(CRobotAge
 
     CFeatureVector::NUMBER_OF_FEATURES = m_euclideanArguments->GetArgumentAsIntOr("numberoffeatures", 6);
     m_fcross_affinity                  = m_euclideanArguments->GetArgumentAsDoubleOr("cross-affinity", 0.27);
-    m_fThreshold                       = m_euclideanArguments->GetArgumentAsDoubleOr("euclidean_threshold",  0.5);
+    m_fThreshold                       = m_euclideanArguments->GetArgumentAsDoubleOr("euclidean_threshold",  0.58);
 
     if (m_euclideanArguments->GetArgumentIsDefined("help") && !bHelpDisplayed)
     {
